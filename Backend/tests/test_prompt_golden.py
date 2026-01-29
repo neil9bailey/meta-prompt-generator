@@ -3,8 +3,7 @@ import pytest
 
 from app.services.assembler import assemble_prompt
 
-GOLDEN_DIR = Path(__file__).parent / "golden"
-GOLDEN_DIR.mkdir(exist_ok=True)
+GOLDEN = Path(__file__).parent / "golden"
 
 
 @pytest.mark.parametrize(
@@ -25,17 +24,14 @@ GOLDEN_DIR.mkdir(exist_ok=True)
     ],
 )
 def test_prompt_matches_golden(role, task, schema, filename, request):
-    prompt = assemble_prompt(
-        role=role,
-        task=task,
-        schema_name=schema,
-    ).strip()
+    prompt = assemble_prompt(role, task, schema).strip()
+    golden_file = GOLDEN / filename
 
-    golden_file = GOLDEN_DIR / filename
+    update = request.config.getoption("--update-golden")
 
-    if request.config.getoption("--update-golden"):
+    if update:
         golden_file.write_text(prompt, encoding="utf-8")
         pytest.skip("Golden updated")
 
-    assert golden_file.exists(), "Golden file missing. Run with --update-golden"
-    assert prompt == golden_file.read_text(encoding="utf-8").strip()
+    expected = golden_file.read_text(encoding="utf-8").strip()
+    assert prompt == expected

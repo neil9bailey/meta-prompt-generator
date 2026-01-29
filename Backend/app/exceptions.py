@@ -1,5 +1,7 @@
+# app/exceptions.py
+
 class MetaPromptError(Exception):
-    """Base domain error"""
+    """Base class for all domain errors."""
 
 
 class RoleNotFoundError(MetaPromptError):
@@ -15,5 +17,4 @@ class InvalidSchemaNameError(MetaPromptError):
 
 
 class LibraryFileError(MetaPromptError):
-    """Invalid or corrupt library content"""
     pass
