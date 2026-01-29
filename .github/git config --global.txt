@@ -1,0 +1,7 @@
+  git config --global user.email neil.bailey@gmail.com
+  git config --global user.name neil9bailey
+Token = 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
+
+
+git remote set-url origin https://neil9bailey@github.com/neil9bailey/meta-prompt-generator
+
