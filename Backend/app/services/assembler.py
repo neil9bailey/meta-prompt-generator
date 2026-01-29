@@ -5,9 +5,8 @@ from typing import Any
 
 from app.exceptions import (
     RoleNotFoundError,
-    SchemaNotFoundError,
     InvalidSchemaNameError,
-    InvalidLibraryFileError,
+    LibraryFileError,
 )
 from app.services.content_normaliser import normalise_content
 from app.services.schema_resolver import load_schema
@@ -34,19 +33,19 @@ def _role_to_filename(role: str) -> str:
 
 def _load_json(path: Path) -> dict[str, Any]:
     if not path.exists():
-        raise FileNotFoundError(f"Missing file: {path.name}")
+        raise LibraryFileError(f"Missing file: {path.name}")
+
+    raw = path.read_text(encoding="utf-8").strip()
+    if not raw:
+        raise LibraryFileError(f"File is empty: {path.name}")
 
     try:
-        raw = path.read_text(encoding="utf-8").strip()
-        if not raw:
-            raise ValueError("File is empty")
         return json.loads(raw)
     except Exception as exc:
-        raise InvalidLibraryFileError(f"Invalid JSON in {path.name}") from exc
+        raise LibraryFileError(f"Invalid JSON in {path.name}") from exc
 
 
 def _validate_schema_name(schema_name: str) -> None:
-    # v1 rule: filenames must be machine-safe
     if not SCHEMA_NAME_PATTERN.match(schema_name.replace(" ", "")):
         raise InvalidSchemaNameError(f"Invalid schema name: {schema_name}")
 
@@ -79,7 +78,7 @@ def assemble_prompt(role: str, task: str, schema_name: str) -> str:
         content = normalise_content(module_data.get("content"))
 
         if not content:
-            raise InvalidLibraryFileError(f"Module '{module}' has no usable content")
+            raise LibraryFileError(f"Module '{module}' has no usable content")
 
         sections.append(content)
         sections.append("")

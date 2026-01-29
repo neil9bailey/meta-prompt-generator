@@ -1,5 +1,5 @@
 class MetaPromptError(Exception):
-    """Base exception for v1"""
+    """Base domain error"""
 
 
 class RoleNotFoundError(MetaPromptError):
@@ -14,5 +14,6 @@ class InvalidSchemaNameError(MetaPromptError):
     pass
 
 
-class InvalidLibraryFileError(MetaPromptError):
+class LibraryFileError(MetaPromptError):
+    """Invalid or corrupt library content"""
     pass

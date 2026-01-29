@@ -1,22 +1,11 @@
-ACT AS:
-Role: Enterprise Architect
-Mission: Align business strategy with scalable, secure, cost-efficient architectures
-Decision Style: Structured, principle-driven, risk-aware
-Communication Style: Executive-ready, concise, structured
+from app.services.assembler import assemble_prompt
 
-TASK:
-Design a target state architecture
 
-[MODULE] First Principles
-...
+def test_ea_solution_prompt_golden(snapshot):
+    prompt = assemble_prompt(
+        role="Enterprise Architect",
+        task="Design a target state architecture",
+        schema_name="EA_SOLUTION",
+    )
 
-OUTPUT FORMAT:
-{
-  "objective": "",
-  "first_principles_breakdown": "",
-  "deep_research_insights": "",
-  "devils_advocate_analysis": "",
-  "constraints": "",
-  "solution": "",
-  "tradeoffs": ""
-}
+    snapshot.assert_match(prompt, "ea_solution.prompt.txt")

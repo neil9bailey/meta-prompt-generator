@@ -1,0 +1,23 @@
+With v1.0.0 as defined:
+
+This is a credible engineering artifact
+
+It meets enterprise internal tooling standards
+
+It is safe to depend on
+
+Failures are explicit, not hidden
+
+Behavior is predictable and reviewable
+
+You’ve crossed the line from “experimental prompt toy” to “real prompt infrastructure”.
+
+If you want next:
+
+v1.1 roadmap
+
+Schema versioning
+
+Prompt diffing & audit logs
+
+Governance / approval workflows
