@@ -1,9 +1,4 @@
-# Core API
-fastapi==0.110.3
-uvicorn==0.29.0
-
-# Data validation
-pydantic==2.7.4
-
-# Testing
-pytest==9.0.2
+fastapi
+uvicorn
+pydantic
+requests

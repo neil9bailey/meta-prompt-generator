@@ -2,9 +2,12 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
-venv/
+
 .env
+.venv
+venv/
+
 .git
 .gitignore
-pytest_cache/
-.coverage
+
+tests/

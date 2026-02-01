@@ -1,59 +1,30 @@
-from fastapi import APIRouter
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from typing import Dict, Any, Optional
 
-from app.services.assembler import assemble_prompt
-from app.services.roles import list_roles
-from app.services.schema_resolver import list_schemas
-from app.exceptions import MetaPromptError
+from app.router.execution_router import ExecutionRouter
 
 router = APIRouter()
+execution_router = ExecutionRouter()
 
 
-# -----------------------------
-# Request Models
-# -----------------------------
-
-class GenerateRequest(BaseModel):
+class ExecutionRequest(BaseModel):
+    execution_schema: str
     role: str
-    task: str
-    schema_name: str = Field(..., alias="schema")
-
-    class Config:
-        populate_by_name = True
+    intent: str
+    input: Dict[str, Any]
+    options: Optional[Dict[str, Any]] = {}
 
 
-# -----------------------------
-# Read APIs
-# -----------------------------
+@router.post("/generate")
+def generate(req: ExecutionRequest):
+    request_dict = req.dict()
+    # Normalise back to internal router contract
+    request_dict["schema"] = request_dict.pop("execution_schema")
 
-@router.get("/roles", response_model=list[str])
-def get_roles() -> list[str]:
-    return list_roles()
+    result = execution_router.route(request_dict)
 
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result)
 
-@router.get("/schemas", response_model=list[str])
-def get_schemas() -> list[str]:
-    return list_schemas()
-
-
-# -----------------------------
-# Generate API
-# -----------------------------
-
-@router.post("/generate", response_model=dict[str, str])
-def generate_prompt(req: GenerateRequest) -> dict[str, str]:
-    try:
-        prompt = assemble_prompt(
-            role=req.role,
-            task=req.task,
-            schema_name=req.schema_name,
-        )
-        return {"prompt": prompt}
-
-    except MetaPromptError as exc:
-        # All domain errors → clean 400s
-        return JSONResponse(
-            status_code=400,
-            content={"error": exc.__class__.__name__, "message": str(exc)},
-        )
+    return result

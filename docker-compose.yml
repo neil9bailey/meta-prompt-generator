@@ -1,14 +1,17 @@
 services:
   api:
-    build:
-      context: ./Backend
-    container_name: meta-prompt-api
+    build: ./Backend
+    container_name: vendorlogic-diiac-api
     ports:
       - "8000:8000"
 
-  frontend:
+  ui:
     build:
       context: ./Frontend
-    container_name: meta-prompt-frontend
+      args:
+        VITE_API_BASE: http://localhost:8000
+    container_name: vendorlogic-diiac-ui
     ports:
       - "3000:80"
+    depends_on:
+      - api

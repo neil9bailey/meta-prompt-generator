@@ -1,89 +1,87 @@
-import { useEffect, useState } from "react";
-import { fetchRoles, fetchSchemas, generatePrompt } from "./api";
+/**
+ * VendorLogic DIIaC v1.1.0 (Clean)
+ * Control Plane — Mock Adapter Baseline
+ */
 
-export default function App() {
-  const [roles, setRoles] = useState<string[]>([]);
-  const [schemas, setSchemas] = useState<string[]>([]);
-  const [role, setRole] = useState("");
-  const [schema, setSchema] = useState("");
-  const [task, setTask] = useState("");
-  const [output, setOutput] = useState("");
-  const [loading, setLoading] = useState(false);
+import { useState } from "react";
+import { generatePrompt } from "./api";
+import "./App.css";
 
-  useEffect(() => {
-    fetchRoles().then(r => {
-      setRoles(r);
-      setRole(r[0] ?? "");
-    });
+/**
+ * LOCKED BASELINE
+ * These values are the ONLY supported pair today
+ * as declared by MockAdapter.capabilities
+ */
+const EXECUTION_SCHEMA = "network-design";
+const ROLE = "network-architect";
+const INTENT = "baseline";
 
-    fetchSchemas().then(s => {
-      setSchemas(s);
-      setSchema(s[0] ?? "");
-    });
-  }, []);
+function App() {
+  const [text, setText] = useState("");
+  const [result, setResult] = useState("");
+  const [error, setError] = useState("");
 
-  async function onGenerate() {
-    setLoading(true);
-    setOutput("");
+  const compile = async () => {
+    setError("");
+    setResult("");
+
     try {
-      const prompt = await generatePrompt(role, task, schema);
-      setOutput(prompt);
-    } catch (err) {
-      setOutput(String(err));
-    } finally {
-      setLoading(false);
+      const response = await generatePrompt({
+        execution_schema: EXECUTION_SCHEMA,
+        role: ROLE,
+        intent: INTENT,
+        input: {
+          text,
+        },
+        options: {},
+      });
+
+      setResult(JSON.stringify(response, null, 2));
+    } catch (e: any) {
+      setError(e.message ?? "Compilation failed");
     }
-  }
+  };
 
   return (
-    <main style={{ padding: 24, fontFamily: "system-ui" }}>
-      <h1>Meta Prompt Generator</h1>
+    <div className="container">
+      <header>
+        <h1>VendorLogic Meta Prompt Generator</h1>
+        <p>v1.1.0-clean · Baseline Adapter</p>
+        <p>
+          Schema: <strong>{EXECUTION_SCHEMA}</strong> ·
+          Role: <strong>{ROLE}</strong>
+        </p>
+      </header>
 
-      <label>
-        Role
-        <select value={role} onChange={e => setRole(e.target.value)}>
-          {roles.map(r => (
-            <option key={r} value={r}>
-              {r}
-            </option>
-          ))}
-        </select>
-      </label>
+      <section>
+        <textarea
+          placeholder="Enter network design task…"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          rows={6}
+        />
+      </section>
 
-      <label>
-        Schema
-        <select value={schema} onChange={e => setSchema(e.target.value)}>
-          {schemas.map(s => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
-      </label>
+      <section>
+        <button onClick={compile} disabled={!text}>
+          Compile Prompt
+        </button>
+      </section>
 
-      <textarea
-        placeholder="Describe the task..."
-        value={task}
-        onChange={e => setTask(e.target.value)}
-        rows={6}
-        style={{ width: "100%", marginTop: 12 }}
-      />
+      {error && (
+        <section>
+          <pre className="error">{error}</pre>
+        </section>
+      )}
 
-      <button onClick={onGenerate} disabled={loading}>
-        {loading ? "Generating…" : "Generate"}
-      </button>
-
-      <pre
-        style={{
-          marginTop: 16,
-          padding: 16,
-          background: "#111",
-          color: "#0f0",
-          whiteSpace: "pre-wrap",
-        }}
-      >
-        {output}
-      </pre>
-    </main>
+      {result && (
+        <section>
+          <h3>Result</h3>
+          <pre>{result}</pre>
+        </section>
+      )}
+    </div>
   );
 }
+
+export default App;

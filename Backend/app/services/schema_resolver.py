@@ -1,44 +1,39 @@
-import json
 from pathlib import Path
-from typing import Any, Set
+import json
+from typing import Any
 
-from app.exceptions import SchemaNotFoundError, LibraryFileError
-
-BASE_DIR = Path(__file__).resolve().parents[1]
-SCHEMA_DIR = BASE_DIR / "library" / "schemas"
-
-
-def _load_schema_file(path: Path) -> dict[str, Any]:
-    raw = path.read_text(encoding="utf-8").strip()
-    if not raw:
-        raise LibraryFileError(f"Schema file empty: {path.name}")
-
-    try:
-        return json.loads(raw)
-    except Exception as exc:
-        raise LibraryFileError(f"Invalid JSON in schema {path.name}") from exc
+# Directory that holds execution / vendor schemas
+SCHEMA_DIR = Path(__file__).parent.parent / "schemas"
 
 
-def load_schema(name: str, _seen: Set[str] | None = None) -> dict[str, Any]:
-    if _seen is None:
-        _seen = set()
+class SchemaNotFound(Exception):
+    pass
 
-    if name in _seen:
-        raise LibraryFileError(f"Schema inheritance cycle detected at {name}")
 
-    _seen.add(name)
+def list_schemas() -> list[str]:
+    """
+    Return a list of available schema names (without file extension).
+    Used by the API and execution router for discovery.
+    """
+    if not SCHEMA_DIR.exists():
+        return []
 
-    path = SCHEMA_DIR / f"{name}.json"
-    if not path.exists():
-        raise SchemaNotFoundError(f"Schema not found: {name}")
+    return sorted(
+        f.stem
+        for f in SCHEMA_DIR.glob("*.json")
+        if f.is_file()
+    )
 
-    schema = _load_schema_file(path)
 
-    parent = schema.get("extends")
-    if parent:
-        parent_schema = load_schema(parent, _seen)
-        merged = parent_schema | schema
-        merged.pop("extends", None)
-        return merged
+def load_schema(name: str) -> dict[str, Any]:
+    """
+    Load a schema by name.
+    Raises SchemaNotFound if the schema does not exist.
+    """
+    schema_path = SCHEMA_DIR / f"{name}.json"
 
-    return schema
+    if not schema_path.exists():
+        raise SchemaNotFound(f"Schema '{name}' not found")
+
+    with schema_path.open("r", encoding="utf-8") as f:
+        return json.load(f)
