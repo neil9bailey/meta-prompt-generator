@@ -1,53 +1,48 @@
-from typing import Dict, Any
+from app.execution.contracts import ExecutionContext
+from app.execution.normalize.normalize_execution_request import (
+    normalize_execution_request,
+)
+from app.execution.registry.adapter_registry import AdapterRegistry
+from app.execution.bootstrap.register_adapters import register_adapters
 
-from app.adapters.registry import ADAPTER_REGISTRY
+
+# Phase 3: single, explicit registry (v1.x)
+# Phase 3: single, explicit registry (v1.x)
+_registry = AdapterRegistry()
+register_adapters(_registry)
 
 
-class ExecutionRouter:
+
+def execute(
+    *,
+    role: str,
+    schema: str,
+    intent: str,
+    input_data,
+    assembled_prompt: str,
+    constraints=None,
+):
     """
-    Routes execution requests to the correct adapter and
-    enforces a strict adapter response contract.
+    Phase 3 execution router (single-path).
+
+    - Deterministic adapter resolution
+    - Normalized adapter input
+    - No fallback logic
     """
+    ctx = ExecutionContext(
+        contract_version="1.0",
+        mode="standard",
+        strict=True,
+    )
 
-    def route(self, request: Dict[str, Any]) -> Dict[str, Any]:
-        # 🔒 Canonical internal field names
-        schema = request["schema"]
-        role = request["role"]
+    request = normalize_execution_request(
+        role=role,
+        schema=schema,
+        intent=intent,
+        input_data=input_data,
+        assembled_prompt=assembled_prompt,
+        constraints=constraints,
+    )
 
-        adapter = self._select_adapter(schema, role)
-        if not adapter:
-            return {
-                "error": "NO_ADAPTER_AVAILABLE",
-                "detail": f"No adapter supports schema={schema}, role={role}",
-            }
-
-        adapter_result = adapter.execute(
-            {
-                "schema": schema,
-                "role": role,
-                "intent": request["intent"],
-                "input": request.get("input", {}),
-                "options": request.get("options", {}),
-            }
-        )
-
-        if "result" not in adapter_result:
-            return {
-                "error": "INVALID_ADAPTER_RESPONSE",
-                "detail": adapter_result,
-            }
-
-        return {
-            "adapter": adapter.name,
-            "schema": schema,
-            "role": role,
-            "result": adapter_result.get("result"),
-            "metadata": adapter_result.get("metadata", {}),
-        }
-
-    def _select_adapter(self, schema: str, role: str):
-        for adapter in ADAPTER_REGISTRY:
-            caps = adapter.capabilities
-            if schema in caps.get("schemas", []) and role in caps.get("roles", []):
-                return adapter
-        return None
+    adapter = _registry.resolve(request)
+    return adapter.execute(request, ctx)
