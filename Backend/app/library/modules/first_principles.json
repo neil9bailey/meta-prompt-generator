@@ -1,8 +1,5 @@
 {
-  "content": [
-    "FIRST-PRINCIPLES MODE:",
-    "• Reduce the problem to fundamental truths",
-    "• Eliminate assumptions",
-    "• Rebuild the solution from first principles"
-  ]
+  "id": "first_principles",
+  "prompt": "FIRST-PRINCIPLES STRATEGIC VIEW:\nIdentify the fundamental business and technology truths that drive this decision. Focus on outcomes, value creation, and risk exposure rather than specific technologies. Separate what must be true from what is merely conventional, and rebuild the strategy from those fundamentals.\n\n"
 }
+

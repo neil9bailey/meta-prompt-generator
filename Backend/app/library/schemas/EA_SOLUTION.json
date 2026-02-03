@@ -1,9 +1,12 @@
 {
-  "objective": "",
-  "first_principles_breakdown": "",
-  "deep_research_insights": "",
-  "devils_advocate_analysis": "",
-  "constraints": "",
-  "solution": "",
-  "tradeoffs": ""
+  "id": "EA_SOLUTION",
+  "description": "Enterprise Architecture solution analysis focused on designing, evaluating, and governing a technology solution using first-principles reasoning, constraints-first analysis, and adversarial challenge.",
+  "structure": {
+    "objective": "Clearly state the problem to be solved and the business and technical outcomes the solution must achieve.",
+    "first_principles": "Reduce the problem to fundamental truths about the architecture, eliminating assumptions and restating the solution from first principles.",
+    "deep_research": "Incorporate relevant standards, reference architectures, vendor capabilities, and industry practices that inform the solution design.",
+    "devils_advocate": "Challenge the proposed solution by identifying weaknesses, hidden risks, failure modes, and counterarguments.",
+    "constraints_first": "Evaluate the solution against hard constraints such as regulatory requirements, security posture, budget limits, operational realities, and legacy dependencies."
+  }
 }
+

@@ -1,89 +1,98 @@
 import { useEffect, useState } from "react";
-import { fetchRoles, fetchSchemas, generatePrompt } from "./api";
+import {
+  fetchRoles,
+  fetchSchemas,
+  generatePrompt,
+  Role,
+  Schema,
+} from "./api";
+import "./App.css";
 
-export default function App() {
-  const [roles, setRoles] = useState<string[]>([]);
-  const [schemas, setSchemas] = useState<string[]>([]);
+function App() {
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [schemas, setSchemas] = useState<Schema[]>([]);
   const [role, setRole] = useState("");
-  const [schema, setSchema] = useState("");
-  const [task, setTask] = useState("");
+  const [schemaId, setSchemaId] = useState("");
+  const [intent, setIntent] = useState("");
   const [output, setOutput] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchRoles().then(r => {
-      setRoles(r);
-      setRole(r[0] ?? "");
-    });
+    fetchRoles()
+      .then(setRoles)
+      .catch((err: unknown) =>
+        setError(err instanceof Error ? err.message : "Failed to load roles")
+      );
 
-    fetchSchemas().then(s => {
-      setSchemas(s);
-      setSchema(s[0] ?? "");
-    });
+    fetchSchemas()
+      .then(setSchemas)
+      .catch((err: unknown) =>
+        setError(err instanceof Error ? err.message : "Failed to load schemas")
+      );
   }, []);
 
   async function onGenerate() {
-    setLoading(true);
-    setOutput("");
+    setError(null);
     try {
-      const prompt = await generatePrompt(role, task, schema);
-      setOutput(prompt);
-    } catch (err) {
-      setOutput(String(err));
-    } finally {
-      setLoading(false);
+      const res = await generatePrompt({
+        role,
+        schema_id: schemaId,
+        intent,
+        input: {},
+      });
+      setOutput(res.prompt);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Generation failed");
     }
   }
 
   return (
-    <main style={{ padding: 24, fontFamily: "system-ui" }}>
-      <h1>Meta Prompt Generator</h1>
+    <div className="App">
+      <h1>Meta Prompt Generator v1.0.0</h1>
 
-      <label>
-        Role
-        <select value={role} onChange={e => setRole(e.target.value)}>
-          {roles.map(r => (
-            <option key={r} value={r}>
-              {r}
+      <div>
+        <label>Role</label>
+        <select value={role} onChange={(e) => setRole(e.target.value)}>
+          <option value="">Select role</option>
+          {roles.map((r) => (
+            <option key={r.id} value={r.id}>
+              {r.id}
             </option>
           ))}
         </select>
-      </label>
+      </div>
 
-      <label>
-        Schema
-        <select value={schema} onChange={e => setSchema(e.target.value)}>
-          {schemas.map(s => (
-            <option key={s} value={s}>
-              {s}
+      <div>
+        <label>Schema</label>
+        <select
+          value={schemaId}
+          onChange={(e) => setSchemaId(e.target.value)}
+        >
+          <option value="">Select schema</option>
+          {schemas.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.id}
             </option>
           ))}
         </select>
-      </label>
+      </div>
 
-      <textarea
-        placeholder="Describe the task..."
-        value={task}
-        onChange={e => setTask(e.target.value)}
-        rows={6}
-        style={{ width: "100%", marginTop: 12 }}
-      />
+      <div>
+        <label>Intent</label>
+        <textarea
+          value={intent}
+          onChange={(e) => setIntent(e.target.value)}
+        />
+      </div>
 
-      <button onClick={onGenerate} disabled={loading}>
-        {loading ? "Generating…" : "Generate"}
+      <button onClick={onGenerate} disabled={!role || !schemaId || !intent}>
+        Generate
       </button>
 
-      <pre
-        style={{
-          marginTop: 16,
-          padding: 16,
-          background: "#111",
-          color: "#0f0",
-          whiteSpace: "pre-wrap",
-        }}
-      >
-        {output}
-      </pre>
-    </main>
+      {error && <pre style={{ color: "red" }}>{error}</pre>}
+      {output && <pre>{output}</pre>}
+    </div>
   );
 }
+
+export default App;

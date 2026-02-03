@@ -1,10 +1,14 @@
 {
-  "context": "",
-  "objectives": "",
-  "assumptions": "",
-  "constraints": "",
-  "strategy": "",
-  "roadmap": "",
-  "risks": "",
-  "success_metrics": ""
+  "id": "CTO_STRATEGY",
+  "description": "Executive-level CTO strategy analysis focused on technology direction, vendor positioning, risk, and multi-year roadmap alignment to business outcomes.",
+  "structure": {
+    "context": "Set the business and technology context driving this decision. Describe the current state and why a strategic review is required.",
+    "objectives": "Define the primary business and technology objectives this strategy must achieve.",
+    "assumptions": "Explicitly state assumptions made due to incomplete information or market uncertainty.",
+    "constraints": "List regulatory, security, budgetary, operational, and legacy constraints that shape viable options.",
+    "strategy": "Describe the recommended strategic approach, including guiding principles and architectural direction.",
+    "roadmap": "Provide a phased 3–5 year roadmap outlining key milestones, capability evolution, and decision points.",
+    "risks": "Identify key strategic, operational, vendor, and execution risks, including mitigations.",
+    "success_metrics": "Define measurable indicators that demonstrate successful execution of the strategy."
+  }
 }

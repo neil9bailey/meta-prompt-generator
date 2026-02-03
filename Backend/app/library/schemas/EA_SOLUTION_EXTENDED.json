@@ -1,7 +1,17 @@
 {
-  "extends": "EA_SOLUTION",
-  "adds": {
-    "security_considerations": "",
-    "operational_readiness": ""
+  "id": "EA_SOLUTION_EXTENDED",
+  "description": "Extended Enterprise Architecture solution analysis providing deeper evaluation of architectural options, vendor positioning, cost, security posture, operational impact, and delivery considerations.",
+  "structure": {
+    "objective": "Restate the problem and desired outcomes, clarifying scope, stakeholders, and success criteria.",
+    "first_principles": "Decompose the solution space into fundamental architectural truths, separating requirements from implementation choices.",
+    "reference_architecture": "Describe the target reference architecture, including core components, integration points, data flows, and trust boundaries.",
+    "vendor_landscape": "Assess relevant vendors or platforms, outlining strengths, weaknesses, differentiation, and strategic fit.",
+    "security_and_risk": "Evaluate the security model, threat exposure, compliance implications, and key architectural risks with proposed mitigations.",
+    "constraints_first": "Analyse how regulatory, security, budgetary, operational, and legacy constraints limit or shape viable options.",
+    "cost_and_tco": "Provide a qualitative or quantitative view of cost drivers, licensing models, operational overhead, and long-term total cost of ownership.",
+    "delivery_and_operability": "Assess delivery complexity, organisational readiness, operational support impact, and required skills or process changes.",
+    "devils_advocate": "Challenge the recommended approach by identifying failure modes, lock-in risks, scalability concerns, and credible alternative paths.",
+    "recommendation": "Present a clear, reasoned recommendation, including rationale, key trade-offs accepted, and conditions for success."
   }
 }
+

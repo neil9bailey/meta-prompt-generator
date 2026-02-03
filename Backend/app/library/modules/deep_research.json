@@ -1,4 +1,5 @@
 {
-  "content": "/deepresearch"
+  "id": "deep_research",
+  "prompt": "MARKET AND EVIDENCE CONTEXT:\nAnchor recommendations in observable market trends, vendor roadmaps, peer benchmarks, and relevant standards. Distinguish evidence from judgement, and clearly state assumptions where certainty is not possible.\n\n"
 }
 

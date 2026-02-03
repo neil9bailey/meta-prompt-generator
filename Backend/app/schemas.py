@@ -1,11 +1,14 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from typing import Any, Dict, List
 
 
-class PromptRequest(BaseModel):
+class GenerateRequest(BaseModel):
     role: str
-    task: str
-    schema_name: str
+    schema_id: str
+    intent: str
+    additional_input: Dict[str, Any] = Field(default_factory=dict)
+    instructions: List[str] = Field(default_factory=list)
 
 
-class PromptResponse(BaseModel):
+class GenerateResponse(BaseModel):
     prompt: str

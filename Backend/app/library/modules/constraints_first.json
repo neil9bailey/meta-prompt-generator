@@ -1,3 +1,4 @@
 {
-  "content": "CONSTRAINTS-FIRST MODE:\n• Regulatory\n• Security\n• Budget\n• Legacy"
+  "id": "constraints_first",
+  "prompt": "EXECUTIVE CONSTRAINTS ASSESSMENT:\nAssess the strategy against hard constraints including regulatory obligations, security posture, capital and operating budgets, organisational capacity, and legacy commitments. Make explicit which constraints are binding and which are policy choices.\n\n"
 }
