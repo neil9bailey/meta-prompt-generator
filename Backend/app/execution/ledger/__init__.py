@@ -1,3 +1,8 @@
-from .ledger_store import ledger_store
+"""
+Execution ledger package exports.
+"""
 
-__all__ = ["ledger_store"]
+from .ledger_store import LedgerStore
+
+__all__ = ["LedgerStore"]
+
