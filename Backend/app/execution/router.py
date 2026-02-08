@@ -1,31 +1,47 @@
-from app.execution.ledger.ledger_store import ledger_store
+from fastapi import APIRouter, Header, HTTPException
+from typing import Optional
+
+from app.execution.contracts.execution_request import ExecutionRequest
+from app.execution.normalize.normalize_execution_request import normalize_execution_request
+from app.services.validation_engine import validate_execution_request
+from app.services.risk_engine import assess_risk
+from app.execution.ledger.ledger_store import LedgerStore
+
+router = APIRouter()
+
+ledger = LedgerStore(path="ledger.jsonl")
 
 
-class ExecutionRouter:
-    """
-    Canonical execution router (v1.3.0).
-    Routes execution requests to registered adapters and persists results.
-    """
+@router.post("/api/execute/validate")
+def execute_validate(
+    request: ExecutionRequest,
+    x_execution_intent: Optional[str] = Header(default=None),
+):
+    if x_execution_intent != "true":
+        raise HTTPException(status_code=400, detail="Explicit execution intent required")
 
-    def __init__(self, registry):
-        self.registry = registry
+    payload = normalize_execution_request(request.dict())
 
-    def execute(self, adapter_name, request):
-        # Prevent duplicate contract execution
-        if ledger_store.exists(request.contract_id):
-            return {
-                "status": "conflict",
-                "message": "Contract already exists in ledger",
-            }
+    validate_execution_request(payload)
 
-        # 🔧 FIX: registry API is `.get()`
-        adapter = self.registry.get(adapter_name)
+    validation_result = {
+        "status": "pass",
+        "policy_id": request.policy_id,
+    }
 
-        ctx = {
-            "execution_id": request.execution_id,
-            "contract_id": request.contract_id,
-        }
+    risk_result = assess_risk(payload)
 
-        result = adapter.execute(request, ctx)
+    ledger_entry = ledger.append(
+        contract_id=request.contract_id,
+        policy_id=request.policy_id,
+        validation_result=validation_result,
+        risk_result=risk_result,
+        output_snapshot=request.content,
+        source_metadata=payload.get("llm_source"),
+    )
 
-        return result
+    return {
+        "validation": validation_result,
+        "risk": risk_result,
+        "ledger_entry": ledger_entry,
+    }

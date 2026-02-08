@@ -171,3 +171,94 @@ Extend execution request schemas
 Carry LLM source + trust metadata into governance
 
 Persist metadata without allowing execution to call AI
+---
+
+## Phase 3.2 — LLM Source & Trust Metadata (Canonical)
+
+Phase 3.2 extends the execution request contract to carry **declarative provenance metadata**
+about the origin of execution content.
+
+### Key Properties
+
+- LLMs remain strictly upstream
+- Execution never invokes a model
+- Metadata is optional and declarative
+- Trust is explicit, never inferred
+- Metadata is persisted immutably in the ledger
+
+### Execution Contract Extension
+
+The execution request MAY include:
+
+```json
+"llm_source": {
+  "type": "llm | human | unknown",
+  "provider": "string",
+  "model": "string",
+  "parameters": { "temperature": 0 },
+  "trusted": false
+}
+
+---
+
+## Phase 4 — Execution Boundary Hardening (Auth & RBAC)
+
+Phase 4 introduces **authentication and role-based access control (RBAC)** at the
+**API boundary only**, without modifying any deterministic execution logic.
+
+This phase is intentionally orthogonal to Phases 1–3.
+
+---
+
+### Architectural Intent
+
+Auth and RBAC exist to control **who may invoke deterministic behaviour** —
+not to influence what that behaviour does.
+
+All deterministic guarantees established in earlier phases remain intact.
+
+---
+
+### Placement (Critical Boundary)
+
+Auth & RBAC are enforced **only** in the API ingress layer.
+
+They MUST NOT appear in:
+
+- execution contracts
+- validation engine
+- risk engine
+- ledger logic
+- policy evaluation
+- LLM provider abstraction
+
+This preserves the claim:
+
+> “Given the same execution input, the system produces the same output,
+> regardless of who submitted it.”
+
+---
+
+### Authentication Model
+
+- JWT bearer tokens
+- OIDC-compatible (Azure AD, Okta, Auth0, etc.)
+- Signature verification only
+- No user database inside DIIaC
+- No session state
+
+Authentication failures occur **before execution**.
+
+---
+
+### Authorization Model (RBAC)
+
+Authorization is based on **roles carried as JWT claims**.
+
+Example token payload:
+
+```json
+{
+  "sub": "opaque-subject-id",
+  "roles": ["EXECUTOR", "AUDITOR"]
+}

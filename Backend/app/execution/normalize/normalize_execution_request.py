@@ -1,26 +1,20 @@
-from app.execution.contracts import ExecutionRequest
+from typing import Dict, Any
 
 
-def normalize_execution_request(
-    *,
-    role: str,
-    schema: str,
-    intent: str,
-    input_data,
-    assembled_prompt: str,
-    constraints=None,
-) -> ExecutionRequest:
+def normalize_execution_request(payload: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Normalize internal execution inputs into a deterministic,
-    adapter-facing ExecutionRequest.
+    Phase 3.2 normalization rules:
 
-    This is the ONLY place where adapter input is shaped.
+    - Preserve llm_source verbatim if present
+    - Do not infer defaults
+    - Do not coerce trust
+    - Do not mutate metadata
     """
-    return ExecutionRequest(
-        role=role,
-        schema=schema,
-        intent=intent,
-        input=input_data,
-        assembled_prompt=assembled_prompt,
-        constraints=constraints,
-    )
+
+    normalized = dict(payload)
+
+    # Explicitly preserve llm_source if present
+    if "llm_source" in payload:
+        normalized["llm_source"] = payload["llm_source"]
+
+    return normalized

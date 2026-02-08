@@ -1,15 +1,14 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from app.api import router
 
-app = FastAPI(title="Meta Prompt Generator")
+from app.router.execution_api import router as execution_api
+from app.router.read_api import router as read_api
+from app.router.proposition_api import router as proposition_api
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+app = FastAPI(
+    title="VendorLogic DIIaC",
+    version="1.3.1-phase4",
 )
 
-app.include_router(router)   # ← MUST be present exactly once
+app.include_router(execution_api)
+app.include_router(read_api)
+app.include_router(proposition_api)

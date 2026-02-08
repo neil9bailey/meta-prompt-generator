@@ -1,47 +1,30 @@
-from typing import Dict, Any, List
-from app.services.policy_config import get_policy
+from typing import Dict, Any
 
-def validate_output(output: Dict[str, Any]) -> Dict[str, Any]:
-    policy = get_policy()
 
-    required_fields = set(policy["required_fields"])
-    min_len = policy.get("min_field_length", 0)
+def validate_execution_request(payload: Dict[str, Any]) -> None:
+    """
+    Deterministic structural validation.
 
-    if not isinstance(output, dict):
-        return {
-            "policy_gate": "fail",
-            "reason": "Output is not a JSON object",
-            **policy_metadata(policy),
-        }
+    Phase 3.2:
+    - llm_source is OPTIONAL
+    - If present, it is STRUCTURALLY validated only
+    - No semantic checks
+    - No inference
+    """
 
-    missing: List[str] = sorted(required_fields - output.keys())
-    if missing:
-        return {
-            "policy_gate": "fail",
-            "missing_fields": missing,
-            **policy_metadata(policy),
-        }
+    llm_source = payload.get("llm_source")
 
-    too_short = [
-        k for k in required_fields
-        if isinstance(output.get(k), str) and len(output[k].strip()) < min_len
-    ]
+    if llm_source is None:
+        return
 
-    if too_short:
-        return {
-            "policy_gate": "fail",
-            "insufficient_detail": too_short,
-            **policy_metadata(policy),
-        }
+    if not isinstance(llm_source, dict):
+        raise ValueError("llm_source must be an object")
 
-    return {
-        "policy_gate": "pass",
-        **policy_metadata(policy),
-    }
+    if "type" not in llm_source:
+        raise ValueError("llm_source missing required field: type")
 
-def policy_metadata(policy: Dict[str, Any]) -> Dict[str, str]:
-    return {
-        "policy_id": policy["policy_id"],
-        "policy_version": policy["policy_version"],
-        "policy_hash": policy["policy_hash"],
-    }
+    if "trusted" not in llm_source:
+        raise ValueError("llm_source missing required field: trusted")
+
+    if not isinstance(llm_source["trusted"], bool):
+        raise ValueError("llm_source.trusted must be boolean")
