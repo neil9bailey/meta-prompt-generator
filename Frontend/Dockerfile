@@ -1,20 +1,12 @@
-FROM node:20-alpine AS build
+FROM node:24-bookworm
 
 WORKDIR /app
 
-ARG VITE_API_BASE
-ENV VITE_API_BASE=${VITE_API_BASE}
-
-COPY package.json package-lock.json ./
+COPY package*.json ./
 RUN npm install
 
 COPY . .
-RUN npm run build
 
-FROM nginx:alpine
+EXPOSE 5173
 
-COPY --from=build /app/dist /usr/share/nginx/html
-
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["npm", "run", "dev", "--", "--host"]

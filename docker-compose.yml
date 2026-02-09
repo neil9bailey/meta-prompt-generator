@@ -1,17 +1,25 @@
 services:
-  api:
-    build: ./Backend
-    container_name: vendorlogic-diiac-api
-    ports:
-      - "8000:8000"
-
-  ui:
+  backend:
     build:
-      context: ./Frontend
-      args:
-        VITE_API_BASE: http://localhost:8000
-    container_name: vendorlogic-diiac-ui
+      context: F:/App Development/vendorlogic-diiac/backend-ui-bridge
+    container_name: diiac-backend
     ports:
-      - "3000:80"
+      - "3001:3001"
+
+    # ONLY mount deterministic data, NOT source code
+    volumes:
+      - F:/App Development/vendorlogic-diiac/artefacts:/workspace/artefacts
+      - F:/App Development/vendorlogic-diiac/contracts:/workspace/contracts
+      - F:/App Development/vendorlogic-diiac/ledger:/workspace/ledger
+
+    working_dir: /workspace
+    command: node /app/server.js
+
+  frontend:
+    build:
+      context: F:/App Development/vendorlogic-diiac/Frontend
+    container_name: diiac-frontend
+    ports:
+      - "5173:5173"
     depends_on:
-      - api
+      - backend
