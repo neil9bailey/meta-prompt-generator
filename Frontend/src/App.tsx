@@ -1,21 +1,19 @@
+
 import "./App.css";
 import GovernedCtoStrategy from "./GovernedCtoStrategy";
+import GovernedReportViewer from "./GovernedReportViewer";
+import TrustDashboard from "./TrustDashboard";
 
-function App() {
+export default function App() {
   return (
-    <div style={{ padding: "2rem", fontFamily: "Segoe UI, Arial, sans-serif" }}>
+    <main style={{ padding: "2rem", maxWidth: "1200px", margin: "0 auto" }}>
       <h1>DIIaC Governance Console</h1>
 
-      <p>
-        This interface provides access to deterministic, policy-governed
-        enterprise outputs. AI-assisted content is treated as untrusted input.
-      </p>
-
-      <hr />
-
       <GovernedCtoStrategy />
-    </div>
+      <hr />
+      <GovernedReportViewer />
+      <hr />
+      <TrustDashboard />
+    </main>
   );
 }
-
-export default App;

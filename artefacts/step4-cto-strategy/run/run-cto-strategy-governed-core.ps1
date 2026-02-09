@@ -1,87 +1,153 @@
+param (
+    [Parameter(Mandatory = $true)]
+    [string]$Provider
+)
+
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-# Resolve deterministic root path
-if ($env:DIIAC_ROOT) {
-    $root = [string]$env:DIIAC_ROOT
-} else {
-    $resolved = Resolve-Path "..\..\.." | Select-Object -First 1
-    $root = [string]$resolved.Path
+# -----------------------------
+# Root paths (Docker-safe)
+# -----------------------------
+# PSScriptRoot = .../artefacts/step4-cto-strategy/run
+$Root = $PSScriptRoot |
+    Split-Path -Parent |   # step4-cto-strategy
+    Split-Path -Parent |   # artefacts
+    Split-Path -Parent     # workspace repo root (/workspace)
+
+$ContractPath = Join-Path $Root "contracts/strategy/cto-strategy-governed.v1.json"
+$InputDir     = Join-Path $Root "artefacts/step4-cto-strategy/input"
+$OutputDir    = Join-Path $Root "artefacts/step4-cto-strategy/output"
+$LedgerPath   = Join-Path $Root "ledger/ledger.jsonl"
+
+# -----------------------------
+# Helpers
+# -----------------------------
+function Get-Sha256 {
+    param ([string]$Value)
+
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes($Value)
+    $hash  = [System.Security.Cryptography.SHA256]::Create().ComputeHash($bytes)
+    return ($hash | ForEach-Object { $_.ToString("x2") }) -join ""
 }
 
-# Explicit paths (no Join-Path ambiguity)
-$contractPath = "$root/contracts/strategy/cto-strategy-governed.v1.json"
+# Normalise provider label (metadata unification)
+function Normalize-Provider {
+    param([string]$P)
 
-$inputPaths = @(
-    "$root/artefacts/step4-cto-strategy/input/cto-strategy-draft.copilot.md",
-    "$root/artefacts/step4-cto-strategy/input/cto-strategy-draft.chatgpt.md"
-)
+    $p2 = ($P ?? "").Trim()
 
-$ledgerPath = "$root/ledger/ledger.jsonl"
-$outputDir  = "$root/artefacts/step4-cto-strategy/output"
+    if ($p2 -match '^(chatgpt|openai)$') { return "ChatGPT (OpenAI)" }
+    if ($p2 -match '^(microsoft copilot|copilot|m365 copilot)$') { return "Microsoft Copilot" }
 
-# Load ledger safely
-$ledgerLines = @()
-if (Test-Path $ledgerPath) {
-    $ledgerLines = @(Get-Content $ledgerPath -ErrorAction SilentlyContinue)
+    # fallback
+    return $p2
 }
 
-foreach ($inputPath in $inputPaths) {
+# Basic UTF-8 normalisation (fixes â€” etc.)
+function Normalize-Utf8 {
+    param([string]$Text)
+    if ([string]::IsNullOrWhiteSpace($Text)) { return $Text }
 
-    $executionId = [Guid]::NewGuid().ToString()
-    $timestamp   = (Get-Date).ToString("o")
+    # If content came in as cp1252-ish, writing as UTF8 fixes most cases.
+    # Keep it simple: just return text; Set-Content UTF8 below is the key.
+    return $Text
+}
 
-    $contractHash = (Get-FileHash $contractPath -Algorithm SHA256).Hash
-    $inputHash    = (Get-FileHash $inputPath -Algorithm SHA256).Hash
+# -----------------------------
+# Preconditions
+# -----------------------------
+if (-not (Test-Path $ContractPath)) {
+    throw "Contract not found: $ContractPath"
+}
+if (-not (Test-Path $InputDir)) {
+    throw "Input directory not found: $InputDir"
+}
 
-    $previousHash = if ($ledgerLines.Count -gt 0) {
-        ($ledgerLines[$ledgerLines.Count - 1] | ConvertFrom-Json).entry_hash
-    } else {
-        "GENESIS"
+New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
+New-Item -ItemType File -Force -Path $LedgerPath | Out-Null
+
+# -----------------------------
+# Load contract
+# -----------------------------
+$ContractJson = Get-Content $ContractPath -Raw
+$ContractHash = Get-Sha256 $ContractJson
+
+$ProviderNormalized = Normalize-Provider $Provider
+
+# -----------------------------
+# Process each input file
+# -----------------------------
+Get-ChildItem $InputDir -Filter "*.md" | ForEach-Object {
+
+    $InputContentRaw = Get-Content $_.FullName -Raw
+    $InputContent    = Normalize-Utf8 $InputContentRaw
+
+    $InputHash    = Get-Sha256 $InputContent
+    $ExecutionId  = [guid]::NewGuid().ToString()
+
+    # Previous ledger hash
+    $PreviousHash = "GENESIS"
+    if ((Get-Item $LedgerPath).Length -gt 0) {
+        $LastEntry    = Get-Content $LedgerPath | Select-Object -Last 1 | ConvertFrom-Json
+        $PreviousHash = $LastEntry.entry_hash
     }
 
-    $hashMaterial = "$executionId|$timestamp|$contractHash|$inputHash|$previousHash"
-    $entryHash = [BitConverter]::ToString(
-        [System.Security.Cryptography.SHA256]::Create().ComputeHash(
-            [System.Text.Encoding]::UTF8.GetBytes($hashMaterial)
-        )
-    ).Replace("-", "")
-
-    $ledgerEntry = @{
-        execution_id  = $executionId
-        timestamp     = $timestamp
-        contract_id   = "cto-strategy-governed"
-        contract_hash = $contractHash
-        input_hash    = $inputHash
-        previous_hash = $previousHash
-        entry_hash    = $entryHash
-        risk          = "LOW"
-    } | ConvertTo-Json -Compress
-
-    Add-Content -Path $ledgerPath -Value $ledgerEntry
-    $ledgerLines += $ledgerEntry
-
-    $outputFile = "$outputDir/cto-strategy-governed-$(Split-Path $inputPath -Leaf)"
-
-@"
+    # -----------------------------
+    # Governed output
+    # -----------------------------
+    $GovernedContent = @"
 # CTO Strategy Report — Governed Output
 
 ## Governance Metadata
-- Execution ID: $executionId
-- Contract Hash: $contractHash
-- Input Hash: $inputHash
-- Ledger Entry Hash: $entryHash
-- Previous Ledger Hash: $previousHash
+- Execution ID: $ExecutionId
+- Provider: $ProviderNormalized
+- Contract Hash: $ContractHash
+- Input Hash: $InputHash
+- Previous Ledger Hash: $PreviousHash
 - Risk Classification: LOW
 
 ## Determinism Assertion
 This report was produced via deterministic DIIaC execution.
-The origin of AI-assisted input does not affect governance outcomes.
+The upstream AI provider does not affect governance outcomes.
 
 ---
 
-$(Get-Content $inputPath -Raw)
-"@ | Set-Content $outputFile -Encoding UTF8
+$InputContent
+"@
+
+    $OutputFileName = "cto-strategy-governed-$($_.Name)"
+    $OutputPath     = Join-Path $OutputDir $OutputFileName
+
+    # Critical: write UTF-8
+    Set-Content -Path $OutputPath -Value $GovernedContent -Encoding UTF8
+
+    # -----------------------------
+    # Ledger entry
+    # -----------------------------
+    $EntryHash = Get-Sha256 (
+        $ExecutionId +
+        $InputHash +
+        $ContractHash +
+        $PreviousHash +
+        $ProviderNormalized
+    )
+
+    $LedgerEntry = @(
+        @{
+            timestamp      = (Get-Date).ToString("o")
+            execution_id   = $ExecutionId
+            provider       = $ProviderNormalized
+            contract_id    = "cto-strategy-governed"
+            contract_hash  = $ContractHash
+            input_hash     = $InputHash
+            previous_hash  = $PreviousHash
+            entry_hash     = $EntryHash
+            risk           = "LOW"
+        } | ConvertTo-Json -Compress
+    )
+
+    Add-Content -Path $LedgerPath -Value $LedgerEntry
 }
 
 Write-Host "Step 4 deterministic governance run complete."

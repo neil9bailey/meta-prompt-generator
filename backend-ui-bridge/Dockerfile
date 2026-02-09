@@ -1,20 +1,34 @@
-FROM node:24-bookworm
+FROM node:20-bullseye
 
-# Install PowerShell
+# -----------------------------
+# Install system dependencies
+# -----------------------------
 RUN apt-get update && \
-    apt-get install -y wget apt-transport-https software-properties-common && \
-    wget -q https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb && \
-    dpkg -i packages-microsoft-prod.deb && \
+    apt-get install -y \
+      curl \
+      ca-certificates \
+      gnupg \
+      pandoc && \
+    rm -rf /var/lib/apt/lists/*
+
+# -----------------------------
+# Install PowerShell (pwsh)
+# -----------------------------
+RUN curl -sSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /etc/apt/trusted.gpg.d/microsoft.gpg && \
+    echo "deb [arch=amd64] https://packages.microsoft.com/repos/microsoft-debian-bullseye-prod bullseye main" > /etc/apt/sources.list.d/microsoft.list && \
     apt-get update && \
     apt-get install -y powershell && \
     rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+# -----------------------------
+# App setup
+# -----------------------------
+WORKDIR /workspace/backend-ui-bridge
 
-COPY package*.json ./
-RUN npm install
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
 
-COPY server.js .
+COPY . .
 
 EXPOSE 3001
 
