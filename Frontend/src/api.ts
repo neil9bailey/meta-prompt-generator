@@ -1,19 +1,27 @@
 const BACKEND_BASE = "http://localhost:3001";
 
-// -----------------------------
-// Shared RBAC headers
-// -----------------------------
-function authHeaders(role: "viewer" | "govern" | "admin") {
+/* ===============================
+   AUTH / RBAC HEADERS
+================================ */
+
+function viewerHeaders() {
   return {
-    "Content-Type": "application/json",
-    "x-api-key": "demo-key",
-    "x-role": role,
+    "x-api-key": "viewer",
+    "x-role": "viewer",
   };
 }
 
-// -----------------------------
-// Run deterministic governance
-// -----------------------------
+function adminHeaders() {
+  return {
+    "x-api-key": "admin",
+    "x-role": "admin",
+  };
+}
+
+/* ===============================
+   GOVERNED EXECUTION
+================================ */
+
 export async function runGovernedCtoStrategy(provider: string) {
   const res = await fetch(
     `${BACKEND_BASE}/govern/cto-strategy?provider=${encodeURIComponent(
@@ -21,7 +29,7 @@ export async function runGovernedCtoStrategy(provider: string) {
     )}`,
     {
       method: "POST",
-      headers: authHeaders("govern"),
+      headers: adminHeaders(),
     }
   );
 
@@ -32,12 +40,13 @@ export async function runGovernedCtoStrategy(provider: string) {
   return res.json();
 }
 
-// -----------------------------
-// List governed reports
-// -----------------------------
+/* ===============================
+   GOVERNED REPORTS
+================================ */
+
 export async function listGovernedReports(): Promise<string[]> {
   const res = await fetch(`${BACKEND_BASE}/reports`, {
-    headers: authHeaders("viewer"),
+    headers: viewerHeaders(),
   });
 
   if (!res.ok) {
@@ -47,12 +56,9 @@ export async function listGovernedReports(): Promise<string[]> {
   return res.json();
 }
 
-// -----------------------------
-// Fetch governed report content
-// -----------------------------
 export async function fetchGovernedReport(file: string): Promise<string> {
   const res = await fetch(`${BACKEND_BASE}/reports/${file}`, {
-    headers: authHeaders("viewer"),
+    headers: viewerHeaders(),
   });
 
   if (!res.ok) {
@@ -62,9 +68,6 @@ export async function fetchGovernedReport(file: string): Promise<string> {
   return res.text();
 }
 
-// -----------------------------
-// Export governed report
-// -----------------------------
 export function exportGovernedReport(
   file: string,
   format: "docx" | "pdf"
@@ -75,17 +78,69 @@ export function exportGovernedReport(
   );
 }
 
-// -----------------------------
-// Trust dashboard
-// -----------------------------
+/* ===============================
+   TRUST DASHBOARD
+================================ */
+
 export async function fetchTrustDashboard() {
   const res = await fetch(`${BACKEND_BASE}/trust`, {
-    headers: authHeaders("admin"),
+    headers: adminHeaders(),
   });
 
   if (!res.ok) {
-    throw new Error("Access denied");
+    throw new Error("Failed to fetch trust dashboard");
   }
 
   return res.json();
+}
+
+/* ===============================
+   EU AI ACT — DERIVED ARTEFACTS
+================================ */
+
+export async function generateEUAIActDerived() {
+  const res = await fetch(`${BACKEND_BASE}/derived/eu-ai-act`, {
+    method: "POST",
+    headers: adminHeaders(),
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to generate EU AI Act derived artefacts");
+  }
+
+  return res.json();
+}
+
+export async function listDerivedReports(): Promise<string[]> {
+  const res = await fetch(`${BACKEND_BASE}/derived`, {
+    headers: viewerHeaders(),
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to list derived artefacts");
+  }
+
+  return res.json();
+}
+
+export async function fetchDerivedReport(file: string): Promise<string> {
+  const res = await fetch(`${BACKEND_BASE}/derived/${file}`, {
+    headers: viewerHeaders(),
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch derived artefact");
+  }
+
+  return res.text();
+}
+
+export function exportDerivedReport(
+  file: string,
+  format: "docx" | "pdf"
+) {
+  window.open(
+    `${BACKEND_BASE}/derived/export/${encodeURIComponent(file)}/${format}`,
+    "_blank"
+  );
 }

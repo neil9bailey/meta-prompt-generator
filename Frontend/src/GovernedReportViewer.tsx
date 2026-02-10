@@ -1,32 +1,32 @@
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
-
 import {
   listGovernedReports,
   fetchGovernedReport,
-  exportGovernedReport,
+  exportGovernedReport
 } from "./api";
-
 import {
   parseGovernanceMetadata,
-  GovernanceMetadata,
+  GovernanceMetadata
 } from "./parseGovernanceMetadata";
-
 import GovernanceMetadataPanel from "./GovernanceMetadataPanel";
 
 export default function GovernedReportViewer() {
   const [files, setFiles] = useState<string[]>([]);
   const [content, setContent] = useState<string>("");
   const [metadata, setMetadata] = useState<GovernanceMetadata | null>(null);
-  const [selectedFile, setSelectedFile] = useState<string | null>(null);
 
   useEffect(() => {
-    listGovernedReports().then(setFiles);
+    listGovernedReports()
+      .then((all) =>
+        // ✅ Only show markdown artefacts
+        setFiles(all.filter((f) => f.endsWith(".md")))
+      )
+      .catch(() => setFiles([]));
   }, []);
 
   async function load(file: string) {
     const text = await fetchGovernedReport(file);
-    setSelectedFile(file);
     setContent(text);
     setMetadata(parseGovernanceMetadata(text));
   }
@@ -38,24 +38,20 @@ export default function GovernedReportViewer() {
       <ul>
         {files.map((f) => (
           <li key={f}>
-            <button onClick={() => load(f)}>{f}</button>
+            <button onClick={() => load(f)}>{f}</button>{" "}
+            <button onClick={() => exportGovernedReport(f, "docx")}>
+              Word
+            </button>{" "}
+            <button onClick={() => exportGovernedReport(f, "pdf")}>
+              PDF
+            </button>
           </li>
         ))}
       </ul>
 
-      {content && metadata && selectedFile && (
+      {content && metadata && (
         <div style={{ marginTop: "2rem" }}>
           <GovernanceMetadataPanel metadata={metadata} />
-
-          <div style={{ marginBottom: "1rem" }}>
-            <strong>Export Governed Output:</strong>{" "}
-            <button onClick={() => exportGovernedReport(selectedFile, "docx")}>
-              Word
-            </button>{" "}
-            <button onClick={() => exportGovernedReport(selectedFile, "pdf")}>
-              PDF
-            </button>
-          </div>
 
           <h4>Governed Output (Read-Only)</h4>
           <ReactMarkdown>{content}</ReactMarkdown>

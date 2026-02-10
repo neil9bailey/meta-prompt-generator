@@ -1,25 +1,24 @@
-// /backend-ui-bridge/auth/rbac.js
+// backend-ui-bridge/auth/rbac.js
+// ESM-compatible RBAC middleware for DIIaC
 
-export const ROLES = {
-  ADMIN: "admin",
-  GOVERNOR: "governor",
-  VIEWER: "viewer",
-};
+export function requireRole(allowedRoles = []) {
+  return function (req, res, next) {
+    const role =
+      req.headers["x-role"] ||
+      req.headers["X-Role"] ||
+      req.headers["x-role".toLowerCase()];
 
-export const ROLE_PERMISSIONS = {
-  admin: ["govern", "export", "view", "trust"],
-  governor: ["govern", "view"],
-  viewer: ["view"],
-};
-
-export function authorize(requiredPermission) {
-  return (req, res, next) => {
-    const role = req.user?.role;
-
-    if (!role || !ROLE_PERMISSIONS[role]?.includes(requiredPermission)) {
+    if (!role) {
       return res.status(403).json({
         error: "Forbidden",
-        reason: "Insufficient role permissions",
+        reason: "No role provided"
+      });
+    }
+
+    if (!allowedRoles.includes(role)) {
+      return res.status(403).json({
+        error: "Forbidden",
+        reason: "Insufficient role permissions"
       });
     }
 
