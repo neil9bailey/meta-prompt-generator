@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "diiac:llm-capture:v1.0.0",
+  "title": "DIIaC LLM Capture Schema v1.0.0",
+  "type": "object",
+  "required": [
+    "schema_id",
+    "schema_version",
+    "schema_hash",
+    "timestamp",
+    "provider",
+    "model",
+    "prompt_hash",
+    "response_hash",
+    "trusted",
+    "content"
+  ],
+  "properties": {
+    "schema_id": {
+      "type": "string",
+      "const": "diiac:llm-capture"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "schema_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "provider": {
+      "type": "string",
+      "enum": ["openai", "copilot"]
+    },
+    "model": {
+      "type": "string"
+    },
+    "prompt_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "response_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "trusted": {
+      "type": "boolean",
+      "const": false
+    },
+    "content": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "additionalProperties": false
+}

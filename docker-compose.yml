@@ -5,14 +5,16 @@ services:
       context: ./backend-ui-bridge
     ports:
       - "3001:3001"
+    environment:
+      - LLM_INGESTION_ENABLED=true
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     volumes:
-      # Workspace data only (artefacts, ledger, templates)
       - ./artefacts:/workspace/artefacts
       - ./contracts:/workspace/contracts
       - ./ledger:/workspace/ledger
       - ./templates:/workspace/templates:ro
-    working_dir: /workspace
-    command: ["node", "backend-ui-bridge/server.js"]
+    working_dir: /workspace/backend-ui-bridge
+    command: ["node", "server.js"]
 
   frontend:
     container_name: diiac-frontend

@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "diiac:policy-binding:v1.0.0",
+  "title": "DIIaC Policy Binding Schema v1.0.0",
+  "type": "object",
+  "required": [
+    "schema_id",
+    "schema_version",
+    "schema_hash",
+    "timestamp",
+    "binding_id",
+    "llm_capture",
+    "policy"
+  ],
+  "properties": {
+    "schema_id": {
+      "type": "string",
+      "const": "diiac:policy-binding"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "schema_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "binding_id": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "llm_capture": {
+      "type": "object",
+      "required": [
+        "response_hash",
+        "schema_version",
+        "schema_hash"
+      ],
+      "properties": {
+        "response_hash": { "type": "string" },
+        "schema_version": { "type": "string" },
+        "schema_hash": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "policy": {
+      "type": "object",
+      "required": [
+        "policy_id",
+        "policy_version",
+        "policy_hash"
+      ],
+      "properties": {
+        "policy_id": { "type": "string" },
+        "policy_version": { "type": "string" },
+        "policy_hash": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

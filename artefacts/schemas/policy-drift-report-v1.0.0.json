@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "diiac:policy-drift-report:v1.0.0",
+  "type": "object",
+  "required": [
+    "schema_id",
+    "schema_version",
+    "timestamp",
+    "binding_id",
+    "policy_id",
+    "drift_status",
+    "details"
+  ],
+  "properties": {
+    "schema_id": {
+      "type": "string",
+      "const": "diiac:policy-drift-report"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "binding_id": {
+      "type": "string"
+    },
+    "policy_id": {
+      "type": "string"
+    },
+    "drift_status": {
+      "type": "string",
+      "enum": [
+        "NONE",
+        "VERSION_DRIFT",
+        "HASH_DRIFT",
+        "POLICY_MISSING"
+      ]
+    },
+    "details": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

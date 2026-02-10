@@ -1,0 +1,16 @@
+{
+  "schema_id": "diiac:policy-binding",
+  "schema_version": "1.0.0",
+  "timestamp": "2026-02-10T14:06:07.543Z",
+  "binding_id": "2c0b25e27a4bc8d751cc91706960172dcaa0f0e40a205bceb3feb48ec0d85029",
+  "llm_capture": {
+    "response_hash": "71260b0be808a592f8c631c2180a6ea3ca699ec2a0969d1b2bd412016e1fe5da",
+    "schema_version": "1.0.0",
+    "schema_hash": "3d01ab87272741bb546b79db244f96e68b2ebebc9e43f3e7c2f2b09172803a9c"
+  },
+  "policy": {
+    "policy_id": "CTO_STRATEGY_BASELINE",
+    "policy_version": "1.0.0",
+    "policy_hash": "502748882339E43CCA952484ADCFE4B50D9E217E59FE0A20D7B56D23F124765D"
+  }
+}

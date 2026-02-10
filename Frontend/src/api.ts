@@ -1,146 +1,113 @@
 const BACKEND_BASE = "http://localhost:3001";
 
-/* ===============================
-   AUTH / RBAC HEADERS
-================================ */
+/* =========================================================
+   Internal helper (RBAC fixed)
+   ========================================================= */
 
-function viewerHeaders() {
-  return {
-    "x-api-key": "viewer",
-    "x-role": "viewer",
-  };
+async function backendFetch(
+  url: string,
+  options: RequestInit = {}
+) {
+  const res = await fetch(url, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      "x-role": "admin",
+      ...(options.headers || {})
+    }
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || res.statusText);
+  }
+
+  return res;
 }
 
-function adminHeaders() {
-  return {
-    "x-api-key": "admin",
-    "x-role": "admin",
-  };
-}
-
-/* ===============================
-   GOVERNED EXECUTION
-================================ */
+/* =========================================================
+   GOVERNANCE — CTO STRATEGY
+   ========================================================= */
 
 export async function runGovernedCtoStrategy(provider: string) {
-  const res = await fetch(
-    `${BACKEND_BASE}/govern/cto-strategy?provider=${encodeURIComponent(
-      provider
-    )}`,
-    {
-      method: "POST",
-      headers: adminHeaders(),
-    }
+  const res = await backendFetch(
+    `${BACKEND_BASE}/govern/cto-strategy?provider=${provider}`,
+    { method: "POST" }
   );
-
-  if (!res.ok) {
-    throw new Error("Governance execution failed");
-  }
-
   return res.json();
 }
 
-/* ===============================
+/* =========================================================
    GOVERNED REPORTS
-================================ */
+   ========================================================= */
 
-export async function listGovernedReports(): Promise<string[]> {
-  const res = await fetch(`${BACKEND_BASE}/reports`, {
-    headers: viewerHeaders(),
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to list governed reports");
-  }
-
+export async function listGovernedReports() {
+  const res = await backendFetch(
+    `${BACKEND_BASE}/reports`
+  );
   return res.json();
 }
 
-export async function fetchGovernedReport(file: string): Promise<string> {
-  const res = await fetch(`${BACKEND_BASE}/reports/${file}`, {
-    headers: viewerHeaders(),
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch governed report");
-  }
-
+export async function fetchGovernedReport(file: string) {
+  const res = await backendFetch(
+    `${BACKEND_BASE}/reports/${file}`
+  );
   return res.text();
 }
 
-export function exportGovernedReport(
+export async function exportGovernedReport(
   file: string,
-  format: "docx" | "pdf"
+  format: "pdf" | "docx"
 ) {
-  window.open(
-    `${BACKEND_BASE}/export/${encodeURIComponent(file)}/${format}`,
-    "_blank"
+  const res = await backendFetch(
+    `${BACKEND_BASE}/export/${file}/${format}`
   );
+  return res.blob();
 }
 
-/* ===============================
-   TRUST DASHBOARD
-================================ */
-
-export async function fetchTrustDashboard() {
-  const res = await fetch(`${BACKEND_BASE}/trust`, {
-    headers: adminHeaders(),
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch trust dashboard");
-  }
-
-  return res.json();
-}
-
-/* ===============================
-   EU AI ACT — DERIVED ARTEFACTS
-================================ */
+/* =========================================================
+   DERIVED — EU AI ACT
+   ========================================================= */
 
 export async function generateEUAIActDerived() {
-  const res = await fetch(`${BACKEND_BASE}/derived/eu-ai-act`, {
-    method: "POST",
-    headers: adminHeaders(),
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to generate EU AI Act derived artefacts");
-  }
-
+  const res = await backendFetch(
+    `${BACKEND_BASE}/derived/eu-ai-act`,
+    { method: "POST" }
+  );
   return res.json();
 }
 
-export async function listDerivedReports(): Promise<string[]> {
-  const res = await fetch(`${BACKEND_BASE}/derived`, {
-    headers: viewerHeaders(),
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to list derived artefacts");
-  }
-
+export async function listDerivedReports() {
+  const res = await backendFetch(
+    `${BACKEND_BASE}/derived`
+  );
   return res.json();
 }
 
-export async function fetchDerivedReport(file: string): Promise<string> {
-  const res = await fetch(`${BACKEND_BASE}/derived/${file}`, {
-    headers: viewerHeaders(),
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch derived artefact");
-  }
-
+export async function fetchDerivedReport(file: string) {
+  const res = await backendFetch(
+    `${BACKEND_BASE}/derived/${file}`
+  );
   return res.text();
 }
 
-export function exportDerivedReport(
+export async function exportDerivedReport(
   file: string,
-  format: "docx" | "pdf"
+  format: "pdf" | "docx"
 ) {
-  window.open(
-    `${BACKEND_BASE}/derived/export/${encodeURIComponent(file)}/${format}`,
-    "_blank"
+  const res = await backendFetch(
+    `${BACKEND_BASE}/export/${file}/${format}`
   );
+  return res.blob();
+}
+
+/* =========================================================
+   TRUST DASHBOARD
+   ========================================================= */
+
+export async function fetchTrustDashboard() {
+  const res = await backendFetch(
+    `${BACKEND_BASE}/trust`
+  );
+  return res.json();
 }

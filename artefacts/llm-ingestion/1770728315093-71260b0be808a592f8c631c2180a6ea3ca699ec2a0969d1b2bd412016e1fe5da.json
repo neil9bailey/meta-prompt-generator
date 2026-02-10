@@ -1,0 +1,12 @@
+{
+  "schema_id": "diiac:llm-capture",
+  "schema_version": "1.0.0",
+  "schema_hash": "3d01ab87272741bb546b79db244f96e68b2ebebc9e43f3e7c2f2b09172803a9c",
+  "timestamp": "2026-02-10T12:58:35.093Z",
+  "provider": "copilot",
+  "model": "copilot-enterprise",
+  "prompt_hash": "4d33652ae2a597560d74d27b3e58d7d9fb6d2595b3619fbb283a3a157714c653",
+  "response_hash": "71260b0be808a592f8c631c2180a6ea3ca699ec2a0969d1b2bd412016e1fe5da",
+  "trusted": false,
+  "content": "Copilot response placeholder"
+}

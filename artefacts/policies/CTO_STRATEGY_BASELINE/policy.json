@@ -1,0 +1,31 @@
+{
+  "policy_id": "CTO_STRATEGY_BASELINE",
+  "policy_version": "1.0.0",
+  "policy_name": "CTO Strategy Governance Baseline",
+  "description": "Baseline governance policy for CTO-level AI-derived strategy artefacts.",
+  "scope": {
+    "domain": "technology-strategy",
+    "jurisdiction": "global",
+    "applies_to": [
+      "llm-capture",
+      "policy-binding"
+    ]
+  },
+  "rules": [
+    {
+      "rule_id": "NO_DIRECT_EXECUTION",
+      "description": "AI-derived artefacts must not directly trigger execution.",
+      "severity": "critical"
+    },
+    {
+      "rule_id": "HUMAN_REVIEW_REQUIRED",
+      "description": "All AI-derived strategic outputs require explicit human review before use.",
+      "severity": "high"
+    }
+  ],
+  "metadata": {
+    "owner": "CTO Office",
+    "approved_by": "Governance Board",
+    "approved_date": "2026-01-15"
+  }
+}
