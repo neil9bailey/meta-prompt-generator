@@ -1,18 +1,28 @@
 /* ── Design tokens ── */
 :root {
-  --bg: #0f1117;
-  --surface: #161822;
-  --input-bg: #1c1e2d;
-  --border: #2a2d3e;
-  --text: #e1e3ec;
-  --text-secondary: #a1a5b7;
-  --text-muted: #636780;
+  --bg: #0b0d13;
+  --surface: #12141f;
+  --surface-raised: #181b29;
+  --input-bg: #1a1d2e;
+  --border: #252840;
+  --border-hover: #3b3f5c;
+  --text: #eaecf5;
+  --text-secondary: #b0b4cc;
+  --text-muted: #6b7094;
   --accent: #6366f1;
+  --accent-hover: #818cf8;
   --accent-muted: rgba(99, 102, 241, 0.12);
+  --accent-glow: rgba(99, 102, 241, 0.25);
   --success: #34d399;
+  --success-muted: rgba(52, 211, 153, 0.12);
+  --warning: #fbbf24;
+  --warning-muted: rgba(251, 191, 36, 0.12);
   --error: #f87171;
   --error-bg: rgba(248, 113, 113, 0.08);
   --error-border: rgba(248, 113, 113, 0.25);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
 
   font-family: "Inter", system-ui, -apple-system, sans-serif;
   line-height: 1.5;
@@ -28,15 +38,19 @@
 
 @media (prefers-color-scheme: light) {
   :root {
-    --bg: #f8f9fc;
+    --bg: #f4f5f9;
     --surface: #ffffff;
-    --input-bg: #f1f3f9;
-    --border: #e0e2eb;
+    --surface-raised: #f9fafb;
+    --input-bg: #f0f2f8;
+    --border: #dde0ed;
+    --border-hover: #c5c9dd;
     --text: #1a1c2b;
     --text-secondary: #4a4e69;
-    --text-muted: #9197ab;
+    --text-muted: #8d91a8;
     --accent: #4f46e5;
+    --accent-hover: #6366f1;
     --accent-muted: rgba(79, 70, 229, 0.08);
+    --accent-glow: rgba(79, 70, 229, 0.15);
     --error-bg: rgba(248, 113, 113, 0.06);
     --error-border: rgba(248, 113, 113, 0.2);
   }
@@ -56,4 +70,24 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   margin: 0;
+}
+
+::selection {
+  background: var(--accent-muted);
+  color: var(--accent);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-hover);
 }
