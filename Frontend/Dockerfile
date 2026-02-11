@@ -11,11 +11,15 @@ RUN npm install
 # Copy frontend source
 COPY . .
 
+# Use empty API URL so production uses relative paths (proxied by Nginx)
+ENV VITE_API_URL=""
+
 RUN npm run build
 
 # --- runtime stage ---
 FROM nginx:alpine
 
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html
 
 EXPOSE 80

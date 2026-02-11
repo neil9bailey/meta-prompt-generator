@@ -9,6 +9,7 @@ from app.exceptions import (
     LibraryFileError,
 )
 from app.services.content_normaliser import normalise_content
+from app.services.overlay_loader import load_overlays
 from app.services.schema_resolver import load_schema
 
 BASE_DIR = Path(__file__).resolve().parents[1]
@@ -50,7 +51,13 @@ def _validate_schema_name(schema_name: str) -> None:
         raise InvalidSchemaNameError(f"Invalid schema name: {schema_name}")
 
 
-def assemble_prompt(role: str, task: str, schema_name: str) -> str:
+def assemble_prompt(
+    role: str,
+    task: str,
+    schema_name: str,
+    vendors: list[str] | None = None,
+    security: list[str] | None = None,
+) -> str:
     _validate_schema_name(schema_name)
 
     role_file = ROLES_DIR / _role_to_filename(role)
@@ -81,6 +88,11 @@ def assemble_prompt(role: str, task: str, schema_name: str) -> str:
             raise LibraryFileError(f"Module '{module}' has no usable content")
 
         sections.append(content)
+        sections.append("")
+
+    overlay_sections = load_overlays(vendors=vendors, security=security)
+    for overlay in overlay_sections:
+        sections.append(overlay)
         sections.append("")
 
     sections.append("OUTPUT FORMAT:")

@@ -19,6 +19,10 @@ def _load_schema_file(path: Path) -> dict[str, Any]:
         raise LibraryFileError(f"Invalid JSON in schema {path.name}") from exc
 
 
+def list_schemas() -> list[str]:
+    return sorted(p.stem for p in SCHEMA_DIR.glob("*.json"))
+
+
 def load_schema(name: str, _seen: Set[str] | None = None) -> dict[str, Any]:
     if _seen is None:
         _seen = set()

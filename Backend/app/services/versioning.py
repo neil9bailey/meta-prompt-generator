@@ -1,6 +1,6 @@
 import hashlib
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 DATA_DIR = (
@@ -17,7 +17,7 @@ def store_prompt(record: dict) -> dict:
     """
     payload = json.dumps(record, sort_keys=True).encode()
     record["id"] = "sha256:" + hashlib.sha256(payload).hexdigest()
-    record["timestamp"] = datetime.utcnow().isoformat() + "Z"
+    record["timestamp"] = datetime.now(timezone.utc).isoformat()
 
     with open(LOG_FILE, "a", encoding="utf-8") as f:
         f.write(json.dumps(record) + "\n")

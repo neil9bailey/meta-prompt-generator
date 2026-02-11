@@ -24,4 +24,4 @@ jobs:
 
       - name: Validate library content
         run: |
-          python Backend/scripts/validate_library.py
+          python Backend/app/scripts/validate_library.py
