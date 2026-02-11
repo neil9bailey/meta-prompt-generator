@@ -1,37 +1,23 @@
 const API_BASE =
   import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
-export interface GenerateResult {
-  prompt: string;
-  id: string;
-}
-
-export interface GenerateError {
-  error: string;
-  message: string;
-}
-
 export async function generatePrompt(
   role: string,
   task: string,
-  schema: string,
-  vendors?: string[],
-  security?: string[],
-): Promise<GenerateResult> {
+  schema: string
+): Promise<string> {
   const res = await fetch(`${API_BASE}/generate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ role, task, schema, vendors, security }),
+    body: JSON.stringify({ role, task, schema }),
   });
 
-  const data = await res.json();
-
   if (!res.ok) {
-    const err = data as GenerateError;
-    throw new Error(err.message || "Prompt generation failed");
+    throw new Error("Prompt generation failed");
   }
 
-  return data as GenerateResult;
+  const data = await res.json();
+  return data.prompt;
 }
 
 export async function fetchRoles(): Promise<string[]> {
