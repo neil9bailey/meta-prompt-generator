@@ -1,29 +1,18 @@
-# EU AI Act — Compliance Evidence Index
+# EU AI Act Compliance Evidence Index
 
-## Purpose
-This document enumerates compliance-relevant evidence derived from
-governed AI usage under deterministic control.
+Generated: 2026-02-15 08:17:03Z
 
-## Evidence Sources
-- Immutable execution ledger
-- Governance contracts
-- Input/output hash chaining
+Detected governed AI contracts: 7
 
-## Evidence Metrics
-- Total executions recorded: 4
-- Unique governance contracts: 1
-- Unique governed inputs: 4
+Ledger root reference:
+fe0e82ef7bebfe0e3ec6ebdbe85daf2280b904edfa12474f693448d11184f10e
 
-## Controls Demonstrated
-- Deterministic execution
-- Provider-agnostic governance
-- Risk classification per execution
-- Full audit traceability
+Evidence scope:
+- Immutable ledger chain
+- Governance execution records
+- Policy binding (CTO_STRATEGY_BASELINE)
+- Risk tagging
+- Decision sign-off linkage (if present)
 
-## Exclusions
-- No model training
-- No adaptive behaviour
-- No autonomous decision-making
-
----
-Generated deterministically from governance ledger.
+This artefact is deterministically derived from immutable ledger entries.
+No AI systems were used in its generation.

@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DIIaC Governed Human Input",
+  "schema_id": "diiac:human-input",
+  "schema_version": "1.0.0",
+  "type": "object",
+  "required": [
+    "input_id",
+    "input_hash",
+    "user_id",
+    "intent",
+    "policy_id",
+    "policy_version",
+    "timestamp"
+  ],
+  "properties": {
+    "input_id": {
+      "type": "string",
+      "description": "Unique identifier for this human input execution"
+    },
+    "input_hash": {
+      "type": "string",
+      "description": "SHA-256 hash of the raw human input"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Authenticated user identifier"
+    },
+    "intent": {
+      "type": "string",
+      "description": "Human-provided intent or instruction"
+    },
+    "policy_id": {
+      "type": "string",
+      "description": "Policy governing this input"
+    },
+    "policy_version": {
+      "type": "string",
+      "description": "Policy version applied"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

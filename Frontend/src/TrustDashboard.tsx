@@ -8,42 +8,33 @@ export default function TrustDashboard() {
   useEffect(() => {
     fetchTrustDashboard()
       .then(setData)
-      .catch(() => {
-        setError("Access denied — admin role required.");
-      });
+      .catch(() => setError("Failed to load trust dashboard"));
   }, []);
 
-  if (error) {
-    return (
-      <section>
-        <h3>Trust Dashboard</h3>
-        <p style={{ color: "darkred", fontWeight: "bold" }}>{error}</p>
-      </section>
-    );
-  }
+  if (error) return <p>{error}</p>;
+  if (!data) return <p>Loading trust data…</p>;
 
-  if (!data) return null;
+  const providers = Array.isArray(data.providers)
+    ? data.providers.join(", ")
+    : "None";
 
   return (
-    <section>
-      <h3>Trust Dashboard</h3>
+    <div>
+      <h2>Trust Dashboard</h2>
 
-      <p>
-        <strong>Executions:</strong> {data.executions}
-      </p>
+      <p><strong>Executions:</strong> {data.executions ?? 0}</p>
+      <p><strong>Providers:</strong> {providers}</p>
+      <p><strong>Ledger Continuity:</strong> {data.ledgerContinuity}</p>
 
-      <p>
-        <strong>Providers:</strong> {data.providers.join(", ")}
-      </p>
-
-      <p>
-        <strong>Risk Distribution:</strong>
-      </p>
-      <pre>{JSON.stringify(data.riskDistribution, null, 2)}</pre>
-
-      <p>
-        <strong>Ledger Continuity:</strong> {data.ledgerContinuity}
-      </p>
-    </section>
+      <h3>Risk Distribution</h3>
+      <ul>
+        {data.riskDistribution &&
+          Object.entries(data.riskDistribution).map(([risk, count]) => (
+            <li key={risk}>
+              {risk}: {count}
+            </li>
+          ))}
+      </ul>
+    </div>
   );
 }

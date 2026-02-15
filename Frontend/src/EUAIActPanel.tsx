@@ -1,83 +1,103 @@
 import { useEffect, useState } from "react";
-import ReactMarkdown from "react-markdown";
 import {
-  generateEUAIActDerived,
   listDerivedReports,
   fetchDerivedReport,
-  exportDerivedReport
+  generateEUAIActDerived
 } from "./api";
 
 export default function EUAIActPanel() {
   const [files, setFiles] = useState<string[]>([]);
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [content, setContent] = useState<string>("");
-  const [status, setStatus] = useState<"idle" | "error">("idle");
 
-  // -----------------------------
-  // Load existing derived artefacts
-  // -----------------------------
-  useEffect(() => {
-    listDerivedReports()
-      .then(setFiles)
-      .catch(() => setStatus("error"));
-  }, []);
-
-  // -----------------------------
-  // Generate on demand (admin only)
-  // -----------------------------
-  async function handleGenerate() {
+  async function loadReports() {
     try {
-      await generateEUAIActDerived();
-      const list = await listDerivedReports();
-      setFiles(list);
-      setStatus("idle");
-    } catch {
-      setStatus("error");
+      const data = await listDerivedReports();
+      setFiles(data);
+    } catch (err) {
+      console.error(err);
     }
   }
 
-  async function load(file: string) {
-    setContent(await fetchDerivedReport(file));
+  async function handleGenerate() {
+    try {
+      await generateEUAIActDerived();
+      await loadReports();
+    } catch (err) {
+      console.error(err);
+      alert("EU AI Act generation failed");
+    }
   }
 
+  async function openFile(file: string) {
+    try {
+      const text = await fetchDerivedReport(file);
+      setSelectedFile(file);
+      setContent(text);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to load report");
+    }
+  }
+
+  useEffect(() => {
+    loadReports();
+  }, []);
+
   return (
-    <section style={{ marginTop: "2rem" }}>
-      <h3>EU AI Act Compliance (Derived Evidence)</h3>
+    <div style={{ padding: 20 }}>
+      <h2>EU AI Act Derived Reports</h2>
 
-      <p>
-        These artefacts are deterministically derived from governance contracts,
-        execution metadata, and immutable ledger entries. No AI systems are
-        involved in their generation.
-      </p>
-
-      <button onClick={handleGenerate}>
-        Generate EU AI Act Compliance Reports
+      <button
+        onClick={handleGenerate}
+        style={{
+          marginBottom: 15,
+          padding: "8px 16px",
+          backgroundColor: "#004b8d",
+          color: "white",
+          border: "none",
+          cursor: "pointer"
+        }}
+      >
+        Generate EU AI Act Derived Reports
       </button>
 
-      {status === "error" && (
-        <p style={{ color: "red", fontWeight: "bold" }}>
-          Access denied or generation failed. Admin role required.
-        </p>
-      )}
+      <h3>Available Reports</h3>
 
       <ul>
-        {files.map((f) => (
-          <li key={f}>
-            <button onClick={() => load(f)}>{f}</button>{" "}
-            <button onClick={() => exportDerivedReport(f, "docx")}>
-              Word
-            </button>{" "}
-            <button onClick={() => exportDerivedReport(f, "pdf")}>
-              PDF
+        {files.map((file) => (
+          <li key={file}>
+            <button
+              onClick={() => openFile(file)}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#00ff88",
+                cursor: "pointer",
+                textDecoration: "underline"
+              }}
+            >
+              {file}
             </button>
           </li>
         ))}
       </ul>
 
-      {content && (
-        <div style={{ marginTop: "1rem" }}>
-          <ReactMarkdown>{content}</ReactMarkdown>
+      {selectedFile && (
+        <div
+          style={{
+            marginTop: 20,
+            padding: 15,
+            backgroundColor: "#111",
+            color: "#00ff88",
+            borderRadius: 6,
+            whiteSpace: "pre-wrap"
+          }}
+        >
+          <h3>{selectedFile}</h3>
+          <div>{content}</div>
         </div>
       )}
-    </section>
+    </div>
   );
 }

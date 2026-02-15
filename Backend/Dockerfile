@@ -1,18 +1,24 @@
-FROM python:3.12-slim
+FROM node:20-bookworm
 
-LABEL org.opencontainers.image.title="VendorLogic DIIaC API"
-LABEL org.opencontainers.image.description="Decision Intelligence Infrastructure as Code – MPG Engine"
-LABEL org.opencontainers.image.vendor="VendorLogic"
-LABEL org.opencontainers.image.component="mpg-engine"
+WORKDIR /workspace/backend-ui-bridge
 
-WORKDIR /app
+# Install PowerShell
+RUN apt-get update && \
+    apt-get install -y wget apt-transport-https software-properties-common && \
+    wget -q https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb && \
+    dpkg -i packages-microsoft-prod.deb && \
+    apt-get update && \
+    apt-get install -y powershell && \
+    apt-get clean
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy package files
+COPY backend-ui-bridge/package*.json ./
+RUN npm install
 
-COPY app ./app
+# Copy backend source
+COPY backend-ui-bridge .
 
-ENV PYTHONPATH=/app
-ENV APP_ENV=production
+# Expose port
+EXPOSE 3001
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["node", "server.js"]
