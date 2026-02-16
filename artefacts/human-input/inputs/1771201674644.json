@@ -1,5 +1,0 @@
-{
-  "subject": "Hybrid WAN SD-WAN for OT Network",
-  "requirements": "Evaluate Fortinet vs Palo Alto for a 5-year SD-WAN hybrid WAN deployment\nfor an Operational Technology (OT) environment.\n\nInclude:\n- Security posture comparison\n- OT segmentation\n- SASE capability\n- 5 year TCO\n- Vendor roadmap\n- Risk analysis\n- Governance alignment\n- Executive summary",
-  "role": "CTO"
-}
