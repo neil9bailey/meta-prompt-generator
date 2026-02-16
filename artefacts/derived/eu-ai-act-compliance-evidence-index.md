@@ -1,11 +1,11 @@
 # EU AI Act Compliance Evidence Index
 
-Generated: 2026-02-15 08:17:03Z
+Generated: 2026-02-16 05:17:46Z
 
-Detected governed AI contracts: 7
+Detected governed AI contracts: 21
 
 Ledger root reference:
-fe0e82ef7bebfe0e3ec6ebdbe85daf2280b904edfa12474f693448d11184f10e
+5993b68b2be51bda5842e94cf37c708b69ef36baf6ea47b9f0511ccb91c4f3f1
 
 Evidence scope:
 - Immutable ledger chain

@@ -1,103 +1,55 @@
-import { useEffect, useState } from "react";
 import {
+  generateEUAIActDerived,
   listDerivedReports,
-  fetchDerivedReport,
-  generateEUAIActDerived
+  fetchDerivedReport
 } from "./api";
 
-export default function EUAIActPanel() {
+import { useEffect, useState } from "react";
+
+export default function RegulatoryDerivations() {
   const [files, setFiles] = useState<string[]>([]);
-  const [selectedFile, setSelectedFile] = useState<string | null>(null);
-  const [content, setContent] = useState<string>("");
 
-  async function loadReports() {
-    try {
-      const data = await listDerivedReports();
-      setFiles(data);
-    } catch (err) {
-      console.error(err);
-    }
+  async function load() {
+    const data = await listDerivedReports();
+    setFiles(
+      data.filter(f => f.endsWith(".md"))
+    );
   }
 
-  async function handleGenerate() {
-    try {
-      await generateEUAIActDerived();
-      await loadReports();
-    } catch (err) {
-      console.error(err);
-      alert("EU AI Act generation failed");
-    }
+  async function generate() {
+    await generateEUAIActDerived();
+    await load();
   }
 
-  async function openFile(file: string) {
-    try {
-      const text = await fetchDerivedReport(file);
-      setSelectedFile(file);
-      setContent(text);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to load report");
-    }
+  async function openFile(name: string) {
+    const content = await fetchDerivedReport(name);
+    alert(content);
   }
 
   useEffect(() => {
-    loadReports();
+    load();
   }, []);
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>EU AI Act Derived Reports</h2>
+    <div className="panel">
+      <h2>Regulatory & Compliance Derivations</h2>
 
-      <button
-        onClick={handleGenerate}
-        style={{
-          marginBottom: 15,
-          padding: "8px 16px",
-          backgroundColor: "#004b8d",
-          color: "white",
-          border: "none",
-          cursor: "pointer"
-        }}
-      >
-        Generate EU AI Act Derived Reports
+      <button className="btn-primary" onClick={generate}>
+        Generate Compliance Derivation
       </button>
 
-      <h3>Available Reports</h3>
-
-      <ul>
-        {files.map((file) => (
-          <li key={file}>
+      <div className="console-box">
+        {files.map(f => (
+          <div key={f}>
             <button
-              onClick={() => openFile(file)}
-              style={{
-                background: "none",
-                border: "none",
-                color: "#00ff88",
-                cursor: "pointer",
-                textDecoration: "underline"
-              }}
+              className="link-btn"
+              onClick={() => openFile(f)}
             >
-              {file}
+              {f}
             </button>
-          </li>
+          </div>
         ))}
-      </ul>
-
-      {selectedFile && (
-        <div
-          style={{
-            marginTop: 20,
-            padding: 15,
-            backgroundColor: "#111",
-            color: "#00ff88",
-            borderRadius: 6,
-            whiteSpace: "pre-wrap"
-          }}
-        >
-          <h3>{selectedFile}</h3>
-          <div>{content}</div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }

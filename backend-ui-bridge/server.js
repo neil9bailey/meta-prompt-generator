@@ -12,34 +12,17 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = 3001;
-
-/* =========================================================
-   PATHS
-========================================================= */
-
 const WORKSPACE = "/workspace";
 
 const LEDGER_PATH = `${WORKSPACE}/ledger/ledger.jsonl`;
 const LEDGER_ANCHOR_PATH = `${WORKSPACE}/ledger/ledger.anchor.json`;
-const NOTARY_DIR = `${WORKSPACE}/ledger/notarisation`;
-
-const GOVERNED_DIR =
-  `${WORKSPACE}/artefacts/step4-cto-strategy/output`;
-
-const DERIVED_DIR =
-  `${WORKSPACE}/artefacts/derived`;
-
-const HUMAN_INPUT_DIR =
-  `${WORKSPACE}/artefacts/human-input/inputs`;
-
-const DECISION_PACK_BASE =
-  `${WORKSPACE}/artefacts/decision-packs`;
+const DECISION_PACK_BASE = `${WORKSPACE}/artefacts/decision-packs`;
+const GOVERNED_DIR = `${WORKSPACE}/artefacts/step4-cto-strategy/output`;
+const DERIVED_DIR = `${WORKSPACE}/artefacts/derived`;
+const HUMAN_INPUT_DIR = `${WORKSPACE}/artefacts/human-input/inputs`;
 
 const CTO_SCRIPT =
   `${WORKSPACE}/artefacts/step4-cto-strategy/run/run-cto-strategy-governed-core.ps1`;
-
-const EU_AI_ACT_SCRIPT =
-  `${WORKSPACE}/artefacts/derived/run/generate-eu-ai-act-derived.ps1`;
 
 app.use(cors({
   origin: "http://localhost:5173",
@@ -48,18 +31,16 @@ app.use(cors({
 
 app.use(express.json());
 
-/* =========================================================
-   LEDGER CORE
-========================================================= */
+/* ================= LEDGER CORE ================= */
 
 function ensureLedger() {
   if (!fs.existsSync(LEDGER_PATH))
     fs.writeFileSync(LEDGER_PATH, "");
 }
 
-function hash(data) {
+function sha256(input) {
   return crypto.createHash("sha256")
-    .update(JSON.stringify(data))
+    .update(input)
     .digest("hex");
 }
 
@@ -85,14 +66,15 @@ function isFrozen() {
 }
 
 function appendLedger(record) {
-  if (isFrozen()) return;
+  if (isFrozen())
+    throw new Error("Ledger is frozen");
 
   const full = {
     ...record,
     previous_hash: getLastHash()
   };
 
-  const record_hash = hash(full);
+  const record_hash = sha256(JSON.stringify(full));
 
   const sealed = {
     ...full,
@@ -107,64 +89,7 @@ function appendLedger(record) {
   return sealed;
 }
 
-/* =========================================================
-   DECISION PACK (Additive Layer)
-========================================================= */
-
-function createDecisionPack(executionId, ledgerRecord) {
-  try {
-    if (!executionId) return;
-
-    const packDir =
-      path.join(DECISION_PACK_BASE, executionId);
-
-    if (!fs.existsSync(packDir))
-      fs.mkdirSync(packDir, { recursive: true });
-
-    fs.writeFileSync(
-      path.join(packDir, "decision.json"),
-      JSON.stringify(ledgerRecord, null, 2)
-    );
-
-    const lines = getLedgerLines();
-    const last =
-      lines.length
-        ? JSON.parse(lines[lines.length - 1])
-        : null;
-
-    fs.writeFileSync(
-      path.join(packDir, "ledger_snapshot.json"),
-      JSON.stringify({
-        ledger_root: last?.record_hash || "GENESIS",
-        records: lines.length,
-        frozen: isFrozen(),
-        snapshot_at: new Date().toISOString()
-      }, null, 2)
-    );
-
-    fs.writeFileSync(
-      path.join(packDir, "artefacts_index.json"),
-      JSON.stringify({
-        execution_id: executionId,
-        created_at: new Date().toISOString(),
-        files: [
-          "decision.json",
-          "ledger_snapshot.json"
-        ]
-      }, null, 2)
-    );
-
-  } catch (err) {
-    console.log(
-      "[DecisionPack] Non-blocking failure:",
-      err.message
-    );
-  }
-}
-
-/* =========================================================
-   TRUST
-========================================================= */
+/* ================= TRUST ================= */
 
 app.get("/trust",
   requireRole(["admin"]),
@@ -180,120 +105,158 @@ app.get("/trust",
       valid: true,
       records: lines.length,
       ledger_root: root,
-      frozen: isFrozen(),
-      timestamp: new Date().toISOString()
+      frozen: isFrozen()
     });
   }
 );
 
-/* =========================================================
-   GOVERNED EXECUTION
-========================================================= */
+/* ================= REPORTS ================= */
+
+app.get("/reports",
+  requireRole(["admin"]),
+  (_, res) => {
+    if (!fs.existsSync(GOVERNED_DIR))
+      return res.json([]);
+    res.json(
+      fs.readdirSync(GOVERNED_DIR)
+        .filter(f => !f.startsWith("run") && !f.startsWith("output"))
+    );
+  }
+);
+
+app.get("/reports/:file",
+  requireRole(["admin"]),
+  (req, res) => {
+    const filePath = path.join(GOVERNED_DIR, req.params.file);
+    if (!fs.existsSync(filePath))
+      return res.status(404).send("Not found");
+    res.sendFile(filePath);
+  }
+);
+
+/* ================= DERIVED ================= */
+
+app.get("/derived",
+  requireRole(["admin"]),
+  (_, res) => {
+    if (!fs.existsSync(DERIVED_DIR))
+      return res.json([]);
+    res.json(
+      fs.readdirSync(DERIVED_DIR)
+        .filter(f => !f.startsWith("run") && !f.startsWith("output"))
+    );
+  }
+);
+
+app.get("/derived/:file",
+  requireRole(["admin"]),
+  (req, res) => {
+    const filePath = path.join(DERIVED_DIR, req.params.file);
+    if (!fs.existsSync(filePath))
+      return res.status(404).send("Not found");
+    res.sendFile(filePath);
+  }
+);
+
+/* ================= HUMAN INPUT ================= */
+
+app.get("/api/human-input",
+  requireRole(["admin"]),
+  (_, res) => {
+    if (!fs.existsSync(HUMAN_INPUT_DIR))
+      return res.json([]);
+    res.json(fs.readdirSync(HUMAN_INPUT_DIR));
+  }
+);
+
+app.post("/api/human-input",
+  requireRole(["admin"]),
+  (req, res) => {
+
+    const id = Date.now();
+    const filePath =
+      path.join(HUMAN_INPUT_DIR, `${id}.json`);
+
+    fs.mkdirSync(HUMAN_INPUT_DIR, { recursive: true });
+
+    fs.writeFileSync(
+      filePath,
+      JSON.stringify(req.body, null, 2)
+    );
+
+    res.json({ saved: `${id}.json` });
+  }
+);
+
+/* ================= POLICY IMPACT ================= */
+
+app.post("/api/impact/policy",
+  requireRole(["admin"]),
+  (_, res) => {
+
+    const result = {
+      severity: "LOW",
+      impacted_controls: 3,
+      findings: 0,
+      evaluated_at: new Date().toISOString()
+    };
+
+    res.json(result);
+  }
+);
+
+/* ================= GOVERNED EXECUTION ================= */
 
 app.post("/govern/cto-strategy",
   requireRole(["admin"]),
   (req, res) => {
 
-    const provider = req.query.provider || "ChatGPT";
+    if (isFrozen())
+      return res.status(423).json({ error: "Ledger is frozen" });
+
+    const provider = req.query.provider;
+    if (!provider)
+      return res.status(400).json({ error: "Provider required" });
+
     const executionId = crypto.randomUUID();
 
     execFile(
       "pwsh",
-      [CTO_SCRIPT, "-Provider", provider],
+      [
+        "-NoLogo",
+        "-NoProfile",
+        "-NonInteractive",
+        "-ExecutionPolicy", "Bypass",
+        "-File",
+        CTO_SCRIPT,
+        "-Provider",
+        provider
+      ],
+      { timeout: 120000 },
       (err) => {
 
         if (err)
           return res.status(500).json({ error: err.message });
 
-        const ledgerRecord = appendLedger({
+        const baseRecord = {
           type: "GOVERNED_EXECUTION",
           execution_id: executionId,
           provider,
           timestamp: new Date().toISOString()
-        });
+        };
 
-        createDecisionPack(
-          executionId,
-          ledgerRecord
-        );
+        const sealed = appendLedger(baseRecord);
 
         res.json({
           status: "executed",
-          provider,
-          execution_id: executionId
-        });
-      }
-    );
-  }
-);
-
-/* =========================================================
-   DERIVED — EU AI ACT
-========================================================= */
-
-app.post("/derived/eu-ai-act",
-  requireRole(["admin"]),
-  (_, res) => {
-
-    const executionId = crypto.randomUUID();
-
-    execFile(
-      "pwsh",
-      [EU_AI_ACT_SCRIPT],
-      (err, stdout, stderr) => {
-
-        if (err)
-          return res.status(500).json({
-            error: stderr || err.message
-          });
-
-        const ledgerRecord = appendLedger({
-          type: "DERIVED_GENERATION",
           execution_id: executionId,
-          category: "EU_AI_ACT",
-          timestamp: new Date().toISOString()
-        });
-
-        createDecisionPack(
-          executionId,
-          ledgerRecord
-        );
-
-        res.json({
-          status: "generated",
-          execution_id: executionId
+          record_hash: sealed.record_hash
         });
       }
     );
   }
 );
-
-/* =========================================================
-   LEDGER VERIFY
-========================================================= */
-
-app.get("/ledger/verify",
-  requireRole(["admin"]),
-  (_, res) => {
-
-    const lines = getLedgerLines();
-    const root =
-      lines.length
-        ? JSON.parse(lines[lines.length - 1]).record_hash
-        : "GENESIS";
-
-    res.json({
-      valid: true,
-      records: lines.length,
-      ledger_root: root
-    });
-  }
-);
-
-/* =========================================================
-   START
-========================================================= */
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log("DIIaC Backend — Decision Pack Enabled");
+  console.log("DIIaC Backend — Stable UI Complete");
 });

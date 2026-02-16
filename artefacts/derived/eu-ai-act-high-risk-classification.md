@@ -1,8 +1,8 @@
 # EU AI Act — High Risk Classification
 
-Generated: 2026-02-15 08:17:03Z
+Generated: 2026-02-16 05:17:46Z
 
-Detected governed AI systems: 7
+Detected governed AI systems: 21
 
 Risk determination logic:
 - Governance contract: CTO_STRATEGY_BASELINE

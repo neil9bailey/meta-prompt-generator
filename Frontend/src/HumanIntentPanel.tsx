@@ -1,40 +1,31 @@
 import { useEffect, useState } from "react";
 import {
-  listHumanInputs,
   createHumanInput,
-  executeHumanInput
+  listHumanInputs
 } from "./api";
 
-interface HumanInput {
-  input_id: string;
-  title?: string;
-  policy_id?: string;
-  timestamp?: string;
-}
-
 export default function HumanIntentPanel() {
-  const [inputs, setInputs] = useState<HumanInput[]>([]);
-  const [title, setTitle] = useState("");
+  const [role, setRole] = useState("CTO");
+  const [subject, setSubject] = useState("");
+  const [requirements, setRequirements] = useState("");
+  const [inputs, setInputs] = useState<string[]>([]);
 
   async function refresh() {
     const data = await listHumanInputs();
-    setInputs(Array.isArray(data) ? data : []);
+    setInputs(data);
   }
 
-  async function handleCreate() {
-    if (!title.trim()) return;
+  async function handleSubmit() {
+    if (!subject || !requirements) return;
 
     await createHumanInput({
-      title,
-      policy_id: "CTO_STRATEGY_BASELINE"
+      role,
+      subject,
+      requirements
     });
 
-    setTitle("");
-    await refresh();
-  }
-
-  async function handleExecute(id: string) {
-    await executeHumanInput(id, "ChatGPT");
+    setSubject("");
+    setRequirements("");
     await refresh();
   }
 
@@ -43,49 +34,42 @@ export default function HumanIntentPanel() {
   }, []);
 
   return (
-    <section>
-      <h2>Human Intent</h2>
+    <div className="panel">
+      <h2>Strategic Requirement Intake</h2>
 
-      <div style={{ marginBottom: "1rem" }}>
+      <div className="input-grid">
         <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Enter intent..."
+          value={role}
+          onChange={(e) => setRole(e.target.value)}
+          placeholder="Role (e.g. CTO)"
+          className="input-dark"
         />
-        <button onClick={handleCreate}>Create</button>
+
+        <input
+          value={subject}
+          onChange={(e) => setSubject(e.target.value)}
+          placeholder="Subject"
+          className="input-dark"
+        />
       </div>
 
-      <div>
-        {inputs.map((input, index) => {
-          const safeKey =
-            input?.input_id
-              ? input.input_id
-              : `fallback-${index}`;
+      <textarea
+        value={requirements}
+        onChange={(e) => setRequirements(e.target.value)}
+        placeholder="Enter structured requirements..."
+        className="textarea-console"
+      />
 
-          return (
-            <div
-              key={safeKey}
-              style={{
-                border: "1px solid #444",
-                padding: "0.5rem",
-                marginBottom: "0.5rem"
-              }}
-            >
-              <strong>{input?.title || "Untitled"}</strong>
-              <div>ID: {input?.input_id}</div>
-              <div>{input?.timestamp}</div>
-              <button
-                onClick={() =>
-                  input?.input_id &&
-                  handleExecute(input.input_id)
-                }
-              >
-                Execute
-              </button>
-            </div>
-          );
-        })}
+      <button className="btn-primary" onClick={handleSubmit}>
+        Save Strategic Requirement
+      </button>
+
+      <div className="console-box">
+        <h4>Saved Requirements</h4>
+        {inputs.map((f) => (
+          <div key={f}>{f}</div>
+        ))}
       </div>
-    </section>
+    </div>
   );
 }
