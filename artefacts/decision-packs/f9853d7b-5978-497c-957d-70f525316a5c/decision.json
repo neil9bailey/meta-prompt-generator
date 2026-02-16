@@ -1,8 +1,0 @@
-{
-  "type": "GOVERNED_EXECUTION",
-  "provider": "ChatGPT",
-  "execution_id": "f9853d7b-5978-497c-957d-70f525316a5c",
-  "timestamp": "2026-02-15T15:12:03.416Z",
-  "previous_hash": "8b7e7430d00189b73d0ce7224ef753b0ac05a2f2fe26cf740da412462a5daec6",
-  "record_hash": "691c6aa8e9dafa50d31190d5b9b79bd6cf96718d10de2e22e76eb5e9557852b3"
-}
